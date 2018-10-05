@@ -23,6 +23,9 @@ add_executable(signal_test ./src/TestMain.cpp ./src/SignalFinder.cpp ./src/Buffe
 add_definitions("-std=c++11")
 target_link_libraries(signal_test ${OPENCV_LIBRARIES})
 
+add_executable(find-signal ./src/find-signal.cpp ./src/SignalFinder.cpp ./src/Buffers.cpp ./src/ToolFunc.cpp)
+target_link_libraries(find-signal ssm /usr/local/lib/kaw_lib.a ${OPENCV_LIBRARIES})
+
 
 #add_executable(camera-viewer ./src/camera-viewer.cpp)
 #target_link_libraries(camera-viewer ssm /usr/local/lib/kaw_lib.a ${OPENCV_LIBRARIES})
