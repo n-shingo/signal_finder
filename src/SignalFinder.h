@@ -18,7 +18,8 @@ namespace sn
     enum Mode {
         Idling,     // アイドリング中
         FindingRed, // 赤信号探索中
-        WaitingBlue // 青信号待ち
+        WaitingBlue, // 青信号待ち
+        FoundBlue   // 青信号発見
     };
 
     // AnaylzeImageをした時の結果
@@ -28,7 +29,7 @@ namespace sn
         FoundRed,          // 赤信号を発見した
         WaitingForBlue,    // 青信号待ち
         LostRed,           // 赤信号を見失った
-        ChangedBlueSignal, // 青信号に変わった
+        FoundBlueSignal,         // 青信号を発見した
         Error              // エラー
     };
 
@@ -42,12 +43,13 @@ namespace sn
         Rect SIGNAL_LOCATE_FROM_RED; // テンプレート相対位置
         const char RED_SIGNAL_FILE[256] = "../res/red_signal_average.bmp";  // 平均赤信号画像
         const char BLUE_SIGNAL_FILE[256] = "../res/blu_signal_average.bmp"; // 平均青信号画像
+        Mat RED_SIGNAL_BASE_IMG;
+        Mat BLUE_SIGNAL_BASE_IMG;
         const int RED_AREA_BUF_SIZE = 10; // 赤信号を見つけるための画像バッファサイズ
         const int IMAGE_BUF_SIZE = 10; // 取っておく過去の画像のバッファサイズ
         const int RED_SIGNAL_BUF_SIZE = 3;  // 赤信号であるか確認するためのデータのバッファ数
-        Mat RED_SIGNAL_BASE_IMG;
-        Mat BLUE_SIGNAL_BASE_IMG;
         const int MAX_LOST_FRAMES = 10; // このフレーム数赤信号をロストしたら、赤信号再検出
+        const int BLUE_SIGNAL_FRAMES = 5; // 青信号発見からこのフレーム数、発見結果を出力する
 
 
     public:
@@ -88,6 +90,7 @@ namespace sn
         DoubleBuffer _redCCBuf;    // 赤信号との相関係数を溜めておくバッファ
         Mat _redSignal; // 赤信号発見時の赤信号画像
         int _redSignalLostCounter; // 青信号待ちの時、赤信号をロストした回数を数えるカウンター
+        int _bluSignalCounter;     // 青信号発見から経過したフレーム数
 
 
         //////////////////////
@@ -102,6 +105,9 @@ namespace sn
 
         // 青信号を待つ処理を行う
         Result WaitForBlueSignal(Mat& img, Mat& dst, bool drawResult);
+
+        // 青信号を見つけた後の処理を行う
+        Result FoundBlueSignal(Mat& img, Mat& dst, bool drawResult);
 
         // モード遷移をする
         void MoveMode(Mode mode);

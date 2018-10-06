@@ -37,6 +37,9 @@ Result SignalFinder::AnalyzeImage(Mat& img, Mat& dst, bool drawResult)
 
         case Mode::WaitingBlue:
             return WaitForBlueSignal(img, dst, drawResult);
+
+        case Mode::FoundBlue:
+            return FoundBlueSignal(img, dst, drawResult);
     }
 
     return Result::Error;
@@ -387,11 +390,31 @@ Result SignalFinder::WaitForBlueSignal(Mat& img, Mat& dst, bool drawResult)
     //
     // ここまで来たら青信号で発見!
     //
-    MoveMode(Mode::Idling);
+    MoveMode(Mode::FoundBlue);
     if (drawResult) {
         Labeling(dst, "Found blue signal", Point(0, 0), 0.375, Scalar(255, 0, 0));
     }
-    return Result::ChangedBlueSignal;
+    return Result::FoundBlueSignal;
+}
+
+Result SignalFinder::FoundBlueSignal(Mat& img, Mat& dst, bool drawResult){
+
+    // 青信号発見情報を規定回数まで出力する
+    if( _bluSignalCounter < BLUE_SIGNAL_FRAMES ){
+
+        if(drawResult){
+            Labeling(dst, "Found blue signal", Point(0, 0), 0.375, Scalar(255, 0, 0));
+        }
+        _bluSignalCounter++;
+        return Result::FoundBlueSignal;
+    }
+
+    // アイドリングモードに遷移する
+    MoveMode(Mode::Idling);
+    if(drawResult){
+        Labeling(dst, "Idling", Point(0,0), 0.375 );
+    }
+    return Result::FoundBlueSignal;
 }
 
 // モードの遷移を行う
@@ -410,8 +433,10 @@ void SignalFinder::MoveMode(Mode mode)
     else if (mode == Mode::WaitingBlue) {
         _mode = Mode::WaitingBlue;
         _redSignalLostCounter = 0; //赤信号をロストした回数を数えるカウンター
-
-        // TODO
+    }
+    else if (mode == Mode::FoundBlue ){
+        _mode = Mode::FoundBlue;
+        _bluSignalCounter = 1;  // 遷移するときは既に1回発見しているので1から始まる
     }
 }
 

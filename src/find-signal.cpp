@@ -133,7 +133,6 @@ int main(int argc, char ** argv)
         if( read_robot ){
             if(wpglSsm.readNew()){
                 new_stop_type = wpglSsm.data.stop_type;
-                cout << new_stop_type << endl;
 
                 // もし、stop_typeが0から2になったら,信号探索を行う
                 if( old_stop_type == 0 && new_stop_type == 2)
@@ -174,7 +173,7 @@ int main(int argc, char ** argv)
                     break;
 
                 // 青信号発見
-                case sn::Result::ChangedBlueSignal:
+                case sn::Result::FoundBlueSignal:
                     res.res = 1;
                     break;
 
