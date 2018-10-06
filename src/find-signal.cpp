@@ -12,6 +12,7 @@
 #include <kaw_lib/SSM-Image.hpp>
 #include "SignalFinder.h"
 #include "signalResultSSM.h"
+#include "tc2018_typedef.hpp"
 
 using namespace std;
 using namespace cv;
@@ -41,11 +42,15 @@ int main(int argc, char ** argv)
     // ---> DECLARATION
     //==========================================================
     int ssm_id = 0;
-    bool result_view = false;
+    bool show_result = true;
+    bool read_robot = true;
     Rect procArea(80, 80, 480, 160);
 
     // キャプチャ用フレーム画像と結果画像
     Mat frm, res_img;
+
+    // ロボット情報
+    int new_stop_type=-256, old_stop_type=-256;
 
     // 画像から信号検出するクラス
     SignalFinder finder;
@@ -58,7 +63,7 @@ int main(int argc, char ** argv)
     //--------------------------------------
     // オプション解析
     int c;
-    while( (c = getopt(argc, argv, "n:vh")) != -1 )
+    while( (c = getopt(argc, argv, "n:vrh")) != -1 )
     {
         switch ( c )
         {
@@ -67,7 +72,10 @@ int main(int argc, char ** argv)
             ssm_id = atoi(optarg);
             break;
         case 'v':
-            result_view = true;
+            show_result = false;
+            break;
+        case 'r':
+            read_robot = false;
             break;
         case 'h':
         default:
@@ -88,6 +96,15 @@ int main(int argc, char ** argv)
     if( !cam_image.open( ) ){
         cerr << "SSM Error : open()" << endl;
         return 1;
+    }
+
+    // ロボット情報取得のためのssmのオープン
+    SSMApi<wp_gl> wpglSsm(WP_SNAME, ssm_id);
+    if( read_robot ){
+        if( !wpglSsm.open() ){
+            cerr << "Failed to open ssm for wp_gl" << endl;
+            return 1;
+        }
     }
 
     // ssmにSignalResultを書き込む準備
@@ -112,6 +129,21 @@ int main(int argc, char ** argv)
     while(!gShutOff){
         char key;
 
+        // ssmから最新のロボット情報取得
+        if( read_robot ){
+            if(wpglSsm.readNew()){
+                new_stop_type = wpglSsm.data.stop_type;
+                cout << new_stop_type << endl;
+
+                // もし、stop_typeが0から2になったら,信号探索を行う
+                if( old_stop_type == 0 && new_stop_type == 2)
+                    finder.Start();
+
+                // 今回の値をとっておく
+                old_stop_type = new_stop_type;
+            }
+        }
+
         // ssmから最新画像取得
         if(cam_image.readNew()){
 
@@ -123,20 +155,44 @@ int main(int argc, char ** argv)
             Mat pro_frm = roi.clone();
 
             // 処理
-            finder.AnalyzeImage( pro_frm, res_img, true );
-            res_img.copyTo(roi);
-            rectangle(frm, procArea, Scalar(0,0,0));
+            sn::Result result  = finder.AnalyzeImage( pro_frm, res_img, show_result );
 
             // 結果
             SignalResult res;
-            res.res = -1;
+            switch( result ){
+                // アイドリング中
+                case sn::Result::NoProcess:
+                    res.res = -1;
+                    break;
 
-            // SSMにEdgePos書き込み
+                // 処理中
+                case sn::Result::LookingForRed:
+                case sn::Result::FoundRed:
+                case sn::Result::WaitingForBlue:
+                case sn::Result::LostRed:
+                    res.res = 0;
+                    break;
+
+                // 青信号発見
+                case sn::Result::ChangedBlueSignal:
+                    res.res = 1;
+                    break;
+
+                // エラーとその他は-1(ありえないはず)
+                case sn::Result::Error:
+                default:
+                    cout << "Error or invalid result from SignalFinder" << endl;
+                    res.res = -1;
+            }
+
+            // SSMに結果書き込み
             signalResultSsm.data = res;
             signalResultSsm.write(cam_image.time);
 
-            // -vオプションであれば画像表示
-            if( result_view ){
+            // 結果画像の表示
+            if( show_result ){
+                res_img.copyTo(roi);
+                rectangle(frm, procArea, Scalar(0,0,0));
                 imshow( "find-signal result", frm); // 結果画像
             }
 
@@ -181,7 +237,7 @@ void showHelp(void){
     // 書式
     fprintf( stdout, "\n\n" );
     fprintf( stdout, "\033[1m書式\033[0m\n" );
-    fprintf( stdout, "\t\033[1mfind-signal\033[0m [-n ssmID] [-v]\n" );
+    fprintf( stdout, "\t\033[1mfind-signal\033[0m [-n ssmID] [-v] [-r]\n" );
     fprintf( stdout, "\t\033[1mfind-signal\033[0m [-h]\n" );
     fprintf( stdout, "\n" );
 
@@ -189,7 +245,8 @@ void showHelp(void){
     fprintf( stdout, "\n" );
     fprintf( stdout, "\033[1m説明\033[0m\n" );
     fprintf( stdout, "\t\033[1m-n\033[0m\tSSMのIDを指定する\n" );
-    fprintf( stdout, "\t\033[1m-v\033[0m\t画像処理結果を表示する\n" );
+    fprintf( stdout, "\t\033[1m-v\033[0m\t画像処理結果を表示しない\n" );
+    fprintf( stdout, "\t\033[1m-r\033[0m\tSSMからロボット情報を取得しない\n" );
     fprintf( stdout, "\t\033[1m-h\033[0m\tこのヘルプを表示する\n" );
     fprintf( stdout, "\n" );
 

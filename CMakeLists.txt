@@ -27,7 +27,7 @@ add_executable(find-signal ./src/find-signal.cpp ./src/SignalFinder.cpp ./src/Bu
 target_link_libraries(find-signal ssm /usr/local/lib/kaw_lib.a ${OPENCV_LIBRARIES})
 
 
-#add_executable(camera-viewer ./src/camera-viewer.cpp)
-#target_link_libraries(camera-viewer ssm /usr/local/lib/kaw_lib.a ${OPENCV_LIBRARIES})
+add_executable(test-command ./src/test-command.cpp)
+target_link_libraries(test-command ssm /usr/local/lib/kaw_lib.a ) 
 
 
