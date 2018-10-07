@@ -20,7 +20,7 @@ find_package(PkgConfig)
 pkg_check_modules(OPENCV REQUIRED opencv)
 
 add_executable(signal_test ./src/TestMain.cpp ./src/SignalFinder.cpp ./src/Buffers.cpp ./src/ToolFunc.cpp)
-add_definitions("-std=c++11")
+add_definitions("-std=gnu++11")
 target_link_libraries(signal_test ${OPENCV_LIBRARIES})
 
 add_executable(find-signal ./src/find-signal.cpp ./src/SignalFinder.cpp ./src/Buffers.cpp ./src/ToolFunc.cpp)

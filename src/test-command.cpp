@@ -4,6 +4,8 @@
 // since: 2017-10-19
 //-------------------------------------------------
 
+#include<stdio.h>
+#include<stdlib.h>
 #include<cstdio>
 #include<iostream>
 #include<deque>
@@ -106,7 +108,7 @@ int main(int argc, char ** argv)
         char line[64];
         printf ("送信する数値(0-9)を入力してください. ( q:終了 )\n" );
         printf ("\x1b[K# > " );
-        fgets( line, sizeof(line), stdin );
+        char* r = fgets( line, sizeof(line), stdin );
 
         // コマンドの妥当性チェック
         bool cmd_valid;
