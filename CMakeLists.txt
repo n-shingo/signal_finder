@@ -30,4 +30,4 @@ target_link_libraries(find-signal ssm /usr/local/lib/kaw_lib.a ${OpenCV_LIBRARIE
 add_executable(test-command ./src/test-command.cpp)
 target_link_libraries(test-command ssm /usr/local/lib/kaw_lib.a ) 
 
-
+add_executable(signalState-viewer ./srcEx/signalState-viewer.cpp ./srcEx/SignalState.cpp)

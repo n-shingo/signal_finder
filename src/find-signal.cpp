@@ -7,6 +7,9 @@
 #include <cstdio>
 #include <iostream>
 #include <signal.h>
+#include <sys/shm.h>
+#include <sys/stat.h>
+#include <sys/ipc.h>
 #include "opencv2/opencv.hpp"
 #include <ssm.hpp>
 #include <kaw_lib/SSM-Image.hpp>
@@ -115,6 +118,26 @@ int main(int argc, char ** argv)
         return 1;
     }
 
+    // 共有メモリ関連準備
+    const char key_file[] = "/tmp";
+    const int key_id = 42;
+    const key_t shm_key = ftok(key_file, key_id);
+    if( shm_key == -1 ){
+        cerr << "Create key Error for shared memory: ftok" << endl;
+        return -1;
+    }
+    const int shm_id = shmget(shm_key, 16, IPC_CREAT|0666);
+    if(shm_id==-1){
+        cerr << "Create Shraed Memory Error : shmget" << endl;
+        return -1;
+    }
+    char *shm_adr = (char*)shmat(shm_id, 0, 0);
+    if( shm_adr == (void*)-1)
+    {
+        cerr << "Get shared memory address error : shmat" << endl;
+        return -1;
+    }
+
     // Ctlr-Cの動作登録
     setSigInt();
 
@@ -188,6 +211,10 @@ int main(int argc, char ** argv)
             signalResultSsm.data = res;
             signalResultSsm.write(cam_image.time);
 
+            // 共有メモリに書き込み
+            memcpy( shm_adr, &res.res, sizeof(res.res) );
+
+
             // 結果画像の表示
             if( show_result ){
                 res_img.copyTo(roi);
@@ -224,6 +251,12 @@ int main(int argc, char ** argv)
 
     endSSM();
     cerr << "End SSM" << endl;
+
+    // 共有メモリの終了
+    if( shmdt(shm_adr) == -1 )
+        cout << "Detach Shared Memory Error" << endl;
+    if( shmctl(shm_id, IPC_RMID, 0)==-1)
+        cout << "Destroy Shared Memory Error" << endl;
     // <--- FINALIZE
 
     cout << "End Successfully" << endl;
