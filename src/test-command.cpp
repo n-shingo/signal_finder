@@ -39,7 +39,7 @@ int main(int argc, char ** argv)
 {
     printf( "\x1b[2J\x1b[0;0H"); // コンソールをクリアして(0,0)へ移動
     printf( "----------------------------------------------------\n" );
-    printf( "   Test Command Program for find-signale via SSM    \n" );
+    printf( "   Test Command Program for find-signal via SSM    \n" );
     printf( "----------------------------------------------------\n" );
     //==========================================================
     // ---> DECLARATION

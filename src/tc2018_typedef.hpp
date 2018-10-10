@@ -2,7 +2,7 @@
 #define TC2018_TYPEDEF_H
 
 // <-- ここから加筆
-#include "spur-odometry.h"
+#include "ssmtype/spur-odometry.h"
 #ifndef STRLEN
 #define STRLEN (256)
 #endif

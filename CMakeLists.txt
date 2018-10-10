@@ -24,7 +24,7 @@ add_definitions("-std=c++11")
 target_link_libraries(signal_test ${OpenCV_LIBRARIES})
 
 add_executable(find-signal ./src/find-signal.cpp ./src/SignalFinder.cpp ./src/Buffers.cpp ./src/ToolFunc.cpp)
-target_link_libraries(find-signal ssm /usr/local/lib/kaw_lib.a ${OpenCV_LIBRARIES})
+target_link_libraries(find-signal ssm ypspur /usr/local/lib/kaw_lib.a ${OpenCV_LIBRARIES})
 
 
 add_executable(test-command ./src/test-command.cpp)
