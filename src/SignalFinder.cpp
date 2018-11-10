@@ -214,8 +214,9 @@ Result SignalFinder::WaitForBlueSignal(Mat& img, Mat& dst, bool drawResult)
 
     const int gaussKSize = 5;          // ガウスフィルタのカーネルサイズ
     const double gaussSigma = 3.0;     // ガウスフィルタの半径
-    const double red_threshold = 0.8;  // 赤信号の相関係数閾値
+    const double red_threshold = 0.9;  // 赤信号の相関係数閾値
     const double blu_threshold = 0.6;  // 青信号の相関係数閾値
+    const double blu_threshold_bk = 0.8; // 青信号(逆光)の相関係数閾値
 
     // 描画準備
     if (drawResult) {
@@ -351,10 +352,11 @@ Result SignalFinder::WaitForBlueSignal(Mat& img, Mat& dst, bool drawResult)
 
     // 赤信号でなかった場合、青信号か判断する
     double blu_maxCC = -1.0;
+    double blu_maxCC_bk = -1.0;
     for (int i = 0; i < candImg.size(); i++)
     {
         // 基本青信号テンプレートとの相関係数を計算
-        double r = CompareImages(BLUE_SIGNAL_BASE_IMG, candImg[i]);
+        double r = CompareImages(BLUE_SIGNAL_BASE_IMG, candImg[i]);   // 普通の青信号テンプレートと比較
         if (r >= blu_threshold && r > blu_maxCC) {
             blu_maxCC = r;
         }
@@ -366,10 +368,24 @@ Result SignalFinder::WaitForBlueSignal(Mat& img, Mat& dst, bool drawResult)
             else
                 Labeling(dst, std::to_string(r), pt, 0.3);
         }
+
+        // 逆光青信号テンプレートとの相関係数を計算
+        double r_bk = CompareImages(BLUE_SIGNAL_BK_BASE_IMG, candImg[i]);  // 逆光用テンプレートと比較
+        if (r_bk >= blu_threshold_bk && r_bk > blu_maxCC_bk) {
+            blu_maxCC_bk = r_bk;
+        }
+        // 青信号(逆光)の相関係数描画
+        if (drawResult) {
+            Point pt = Point(candImgRect[i].x + candImgRect[i].width, candImgRect[i].y + 40);
+            if (r_bk >= blu_threshold_bk)
+                Labeling(dst, std::to_string(r_bk), pt, 0.3, Scalar(255, 0, 0));
+            else
+                Labeling(dst, std::to_string(r_bk), pt, 0.3);
+        }
     }
 
     // 青信号でなかった場合
-    if (blu_maxCC < blu_threshold)
+    if (blu_maxCC < blu_threshold && blu_maxCC_bk < blu_threshold_bk)
     {
         _redSignalLostCounter++;
 

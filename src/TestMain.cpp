@@ -27,7 +27,13 @@ const char imgDir[][100] = {
     "/home/shingo/ssm/toBmp/bin/2018.0915.1427.bmp",     // 1個で取れる。問題なし。信号１で人が下でウロウロしている
     "/home/shingo/ssm/toBmp/bin/2018.0915.1427.bmp",     // 1個で取れる。問題なし。信号１で人が下でウロウロしている
     "/home/shingo/ssm/toBmp/bin/2018.0915.1502.bmp",      // ２個以上取れる時がある。赤い車に反応。  
-    "/home/shingo/ssm/toBmp/bin/2018.0915.1502.bmp"      // ２個取れる時がある。帽子に反応。  
+    "/home/shingo/ssm/toBmp/bin/2018.0915.1502.bmp",     // ２個取れる時がある。帽子に反応。  
+    "/home/shingo/ssm/toBmp/bin/2018.1110.1306.bmp",     // 逆光 1
+    "/home/shingo/ssm/toBmp/bin/2018.1110.1306.bmp",     // 逆光 2
+    "/home/shingo/ssm/toBmp/bin/2018.1110.1306.bmp",     // 逆光 3
+    "/home/shingo/ssm/toBmp/bin/2018.1110.1321.bmp",     // 逆光 4
+    "/home/shingo/ssm/toBmp/bin/2018.1110.1321.bmp",     // 普通の信号
+
 };
 
 // 画像番号
@@ -43,7 +49,12 @@ const int imgNum[][2] = {
     {43,435},
     {1281,1475},
     {51,524},
-    {1377,1650}
+    {1377,1650},
+    {0,440},   // 411で青
+    {759, 1200}, // 1170で赤青両方点灯、1171で青だけ点灯
+    {1526,1970}, // 1930で青赤両方消灯、1931で青だけ点灯
+    {0, 250}, // 231で青
+    {1758, 2245} // 2164で青
 };
 
 // 処理エリア
@@ -78,6 +89,7 @@ int main(void)
 
     while (1) {
         getFilePath(num, fn);
+        std::cout << fn << std::endl;
         img = imread(fn);
         dst = img(procArea);
         img = dst.clone();

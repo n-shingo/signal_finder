@@ -43,8 +43,10 @@ namespace sn
         Rect SIGNAL_LOCATE_FROM_RED; // テンプレート相対位置
         const char RED_SIGNAL_FILE[256] = "../res/red_signal_average.bmp";  // 平均赤信号画像
         const char BLUE_SIGNAL_FILE[256] = "../res/blu_signal_average.bmp"; // 平均青信号画像
+        const char BLUE_SIGNAL_BK_FILE[256] = "../res/blu_signal_backlight_average.bmp"; // 逆光時平均青信号画像
         Mat RED_SIGNAL_BASE_IMG;
         Mat BLUE_SIGNAL_BASE_IMG;
+        Mat BLUE_SIGNAL_BK_BASE_IMG;
         const int RED_AREA_BUF_SIZE = 10; // 赤信号を見つけるための画像バッファサイズ
         const int IMAGE_BUF_SIZE = 10; // 取っておく過去の画像のバッファサイズ
         const int RED_SIGNAL_BUF_SIZE = 3;  // 赤信号であるか確認するためのデータのバッファ数
@@ -62,6 +64,7 @@ namespace sn
             _redCCBuf.Clear(RED_SIGNAL_BUF_SIZE);
             RED_SIGNAL_BASE_IMG = imread(RED_SIGNAL_FILE);
             BLUE_SIGNAL_BASE_IMG = imread(BLUE_SIGNAL_FILE);
+            BLUE_SIGNAL_BK_BASE_IMG = imread(BLUE_SIGNAL_BK_FILE);
         }
 
         // デストラクタ
