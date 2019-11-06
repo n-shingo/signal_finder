@@ -16,6 +16,7 @@ using namespace cv;
 
 // 画像フォルダ
 const char imgDir[][100] = {
+    /*
     "/home/shingo/ssm/toBmp/bin/2018.0630.1377.bmp",     // 1個で取れる。ただし一瞬ドーナツ型になる
     "/home/shingo/ssm/toBmp/bin/2018.0630.1377.bmp",     // 1個で取れる。
     "/home/shingo/ssm/toBmp/bin/2018.0804.1129.bmp",     // 1個で取れる。サイズが小さい。
@@ -33,11 +34,33 @@ const char imgDir[][100] = {
     "/home/shingo/ssm/toBmp/bin/2018.1110.1306.bmp",     // 逆光 3
     "/home/shingo/ssm/toBmp/bin/2018.1110.1321.bmp",     // 逆光 4
     "/home/shingo/ssm/toBmp/bin/2018.1110.1321.bmp",     // 普通の信号
+    */
 
+    "/home/shingo/ssm/toBmp/bin/2019.1021.1201.bmp",
+    "/home/shingo/ssm/toBmp/bin/2019.1021.1201.bmp",
+    "/home/shingo/ssm/toBmp/bin/2019.1021.1201.bmp",
+    "/home/shingo/ssm/toBmp/bin/2019.1021.1201.bmp",
+    "/home/shingo/ssm/toBmp/bin/2019.1021.1201.bmp",
+    "/home/shingo/ssm/toBmp/bin/2019.1021.1201.bmp",
+
+    "/home/shingo/ssm/toBmp/bin/2019.1021.1423.bmp",
+    "/home/shingo/ssm/toBmp/bin/2019.1021.1423.bmp",
+
+    "/home/shingo/ssm/toBmp/bin/2019.1021.1524.bmp",
+    "/home/shingo/ssm/toBmp/bin/2019.1021.1524.bmp",
+    "/home/shingo/ssm/toBmp/bin/2019.1021.1524.bmp",
+    "/home/shingo/ssm/toBmp/bin/2019.1021.1524.bmp",
+    "/home/shingo/ssm/toBmp/bin/2019.1021.1524.bmp",
+    "/home/shingo/ssm/toBmp/bin/2019.1021.1524.bmp",
+    "/home/shingo/ssm/toBmp/bin/2019.1021.1524.bmp",
+    
+    "/home/shingo/ssm/toBmp/bin/2019.1021.1547.bmp",
+    "/home/shingo/ssm/toBmp/bin/2019.1021.1547.bmp",
 };
 
 // 画像番号
 const int imgNum[][2] = {
+    /*
     {1434,1800},
     {2487,2783},
     {740,838},
@@ -54,7 +77,29 @@ const int imgNum[][2] = {
     {759, 1200}, // 1170で赤青両方点灯、1171で青だけ点灯
     {1526,1970}, // 1930で青赤両方消灯、1931で青だけ点灯
     {0, 250}, // 231で青
-    {1758, 2245} // 2164で青
+    {1758, 2245}, // 2164で青
+    */
+
+    {0,500},
+    {793, 1250},
+    {1530, 2000},
+    {2320, 2760},
+    {3050, 3520},
+    {3800, 4320},
+
+    {180, 640},
+    {920, 1390},
+    
+    {223, 730},
+    {1000, 1480},
+    {2675, 3010},
+    {3300, 3800},
+    {4030, 4520},
+    {4780, 5280},
+    {5538, 6055},
+
+    {132, 600},
+    {844, 1340},
 };
 
 // 処理エリア
@@ -75,6 +120,11 @@ int getTotalNum(void);
 // 番号から画像のファイルパスを取得する
 void getFilePath(int num, char* path);
 
+// ガンマ補正
+void gammaCrrection( Mat& src, Mat& dst, double gamma );
+
+// 単純に画像を暗くする
+void getDark( Mat& src, Mat&dst, double ratio );
 
 // main関数
 int main(void)
@@ -95,7 +145,11 @@ int main(void)
         img = dst.clone();
         imshow("Original", img);
 
-        sf.AnalyzeImage(img, dst, true);
+        Mat gamma_img = dst.clone();
+        gammaCrrection(img,gamma_img, 0.7);
+        Mat dark_img = gamma_img.clone();
+        //getDark(gamma_img, dark_img, 0.7 );
+        sf.AnalyzeImage(dark_img, dst, true);
         imshow("Original2", dst);
 
         int key;
@@ -181,3 +235,20 @@ void getFilePath(int num, char* path)
 }
 
 
+void gammaCrrection( Mat& src, Mat& dst, double gamma )
+{
+    uchar lut[256];
+    for( int i=0; i<256; i++ ){
+        lut[i] = pow(i / 255.0, 1.0/gamma) * 255.0;
+    }
+    cv::LUT(src, Mat(Size(256,1), CV_8U, lut), dst);
+}
+
+void getDark( Mat& src, Mat&dst, double ratio )
+{
+    uchar lut[256];
+    for( int i=0; i<256; i++ ){
+        lut[i] = (int)(i*ratio);
+    }
+    cv::LUT(src, Mat(Size(256,1), CV_8U, lut), dst);
+}

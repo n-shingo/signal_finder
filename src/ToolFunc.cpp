@@ -4,6 +4,7 @@
 // since: 2018-09-17
 //-------------------------------------------------
 
+#include <unistd.h>
 #include "ToolFunc.h"
 
 
@@ -211,4 +212,12 @@ void sn::Tool::Labeling(Mat& img, String str, Point pos, double fontscale, Scala
         cv::Mat roi = img(cv::Rect(pos.x, pos.y, w, h));
         label.copyTo(roi);
     }
+}
+
+// 実行ファイルのディレクトリを取得する
+char* sn::Tool::GetExeDir( char* buf, size_t bufsize){
+
+    ssize_t s = readlink( "/proc/self/exe", buf, bufsize-1);
+    // TODO: ここで実行ファイルフルパスからディレクトリ名にする
+    return buf;
 }

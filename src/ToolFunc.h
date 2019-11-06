@@ -36,6 +36,10 @@ namespace sn {
         // ラベルを描画する
         void Labeling(Mat& img, String str, Point pos = Point(0, 0), double fontscale = 0.375, Scalar bgColor = Scalar(0.,0.,0.));
 
+        // 実行ファイルのディレクトリを取得する
+        char* GetExeDir(char* buf, size_t size);
+
+
     }
 }
 

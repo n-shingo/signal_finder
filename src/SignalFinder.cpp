@@ -323,19 +323,20 @@ Result SignalFinder::WaitForBlueSignal(Mat& img, Mat& dst, bool drawResult)
     {
         // 赤信号テンプレートとの相関係数を計算
         double r = CompareImages(_redSignal, candImg[i]);
-        if (r >= red_threshold && r > red_maxCC) {
+        if (r > red_maxCC) {
             red_maxCC = r;
             max_redImg = candImg[i];
             max_redRect = candImgRect[i];
         }
-        // 赤信号の相関係数描画
-        if (drawResult) {
-            Point pt = Point(candImgRect[i].x + candImgRect[i].width, candImgRect[i].y);
-            if (r >= red_threshold)
-                Labeling(dst, std::to_string(r), pt, 0.3, Scalar(0, 0, 200));
-            else
-                Labeling(dst, std::to_string(r), pt, 0.3);
-        }
+    }
+
+    // 赤信号の相関係数描画
+    if( drawResult && candImg.size() > 0 ){
+        Point pt = Point(max_redRect.x + max_redRect.width, max_redRect.y );
+        if( red_maxCC >= red_threshold )
+            Labeling(dst, std::to_string(red_maxCC), pt, 0.3, Scalar(0, 0, 200));
+        else
+            Labeling(dst, std::to_string(red_maxCC), pt, 0.3 );
     }
 
     // 赤信号であった場合の処理
@@ -352,36 +353,48 @@ Result SignalFinder::WaitForBlueSignal(Mat& img, Mat& dst, bool drawResult)
 
     // 赤信号でなかった場合、青信号か判断する
     double blu_maxCC = -1.0;
-    double blu_maxCC_bk = -1.0;
+    Mat max_bluImg;
+    Rect max_bluRect;
     for (int i = 0; i < candImg.size(); i++)
     {
         // 基本青信号テンプレートとの相関係数を計算
         double r = CompareImages(BLUE_SIGNAL_BASE_IMG, candImg[i]);   // 普通の青信号テンプレートと比較
-        if (r >= blu_threshold && r > blu_maxCC) {
+        if ( r > blu_maxCC ) {
             blu_maxCC = r;
+            max_bluImg = candImg[i];
+            max_bluRect = candImgRect[i];
         }
-        // 青信号の相関係数描画
-        if (drawResult) {
-            Point pt = Point(candImgRect[i].x + candImgRect[i].width, candImgRect[i].y + 20);
-            if (r >= blu_threshold)
-                Labeling(dst, std::to_string(r), pt, 0.3, Scalar(255, 0, 0));
-            else
-                Labeling(dst, std::to_string(r), pt, 0.3);
-        }
+    }
 
+    // 普通の青信号の相関係数描画
+    if ( drawResult && candImg.size() > 0 ) {
+        Point pt = Point(max_bluRect.x + max_bluRect.width, max_bluRect.y + 20);
+        if (blu_maxCC >= blu_threshold)
+            Labeling(dst, std::to_string(blu_maxCC), pt, 0.3, Scalar(255, 0, 0));
+        else
+            Labeling(dst, std::to_string(blu_maxCC), pt, 0.3);
+    }
+
+    // 赤信号出なかった場合、逆光の青信号か判断する
+    double blu_maxCC_bk = -1.0;
+    for(int i = 0; i < candImg.size(); i++)
+    {
         // 逆光青信号テンプレートとの相関係数を計算
         double r_bk = CompareImages(BLUE_SIGNAL_BK_BASE_IMG, candImg[i]);  // 逆光用テンプレートと比較
-        if (r_bk >= blu_threshold_bk && r_bk > blu_maxCC_bk) {
+        if ( r_bk > blu_maxCC_bk ) {
             blu_maxCC_bk = r_bk;
+            max_bluImg = candImg[i];
+            max_bluRect = candImgRect[i];
         }
-        // 青信号(逆光)の相関係数描画
-        if (drawResult) {
-            Point pt = Point(candImgRect[i].x + candImgRect[i].width, candImgRect[i].y + 40);
-            if (r_bk >= blu_threshold_bk)
-                Labeling(dst, std::to_string(r_bk), pt, 0.3, Scalar(255, 0, 0));
-            else
-                Labeling(dst, std::to_string(r_bk), pt, 0.3);
-        }
+    }
+
+    // 青信号(逆光)の相関係数描画
+    if (drawResult && candImg.size() > 0) {
+        Point pt = Point(max_bluRect.x + max_bluRect.width, max_bluRect.y + 40);
+        if (blu_maxCC_bk >= blu_threshold_bk)
+            Labeling(dst, std::to_string(blu_maxCC_bk), pt, 0.3, Scalar(255, 0, 0));
+        else
+            Labeling(dst, std::to_string(blu_maxCC_bk), pt, 0.3);
     }
 
     // 青信号でなかった場合
