@@ -1,10 +1,10 @@
 //-------------------------------------------------
-// SignalFinder.cpp
+// SignalFinder2019.cpp
 // S. NAKAMURA
 // since: 2018-09-17
 //-------------------------------------------------
 
-#include "SignalFinder.h"
+#include "SignalFinder2019.h"
 #include "ToolFunc.h"
 
 using namespace sn;
@@ -12,20 +12,20 @@ using namespace sn::Tool;
 
 
 // 信号検出処理の開始
-void SignalFinder::Start()
+void SignalFinder2019::Start()
 {
     MoveMode(Mode::FindingRed);
 }
 
 // 信号検出の終了(強制的にアイドリングにする)
-void SignalFinder::Stop()
+void SignalFinder2019::Stop()
 {
     MoveMode(Mode::Idling);
 }
 
 
 // 画像を追加し、解析＆処理を行う
-Result SignalFinder::AnalyzeImage(Mat& img, Mat& dst, bool drawResult)
+Result SignalFinder2019::AnalyzeImage(Mat& img, Mat& dst, bool drawResult)
 {
     switch (_mode) {
 
@@ -52,7 +52,7 @@ Result SignalFinder::AnalyzeImage(Mat& img, Mat& dst, bool drawResult)
 
 
 // アイドリング中の何もしない処理を行う
-Result SignalFinder::ProcessNothing(Mat& img, Mat& dst, bool drawResult)
+Result SignalFinder2019::ProcessNothing(Mat& img, Mat& dst, bool drawResult)
 {
     assert(_mode == Mode::Idling);
 
@@ -65,7 +65,7 @@ Result SignalFinder::ProcessNothing(Mat& img, Mat& dst, bool drawResult)
 }
 
 // 赤信号を探す処理を行う
-Result SignalFinder::TryFindRedSignal(Mat& img, Mat& dst, bool drawResult)
+Result SignalFinder2019::TryFindRedSignal(Mat& img, Mat& dst, bool drawResult)
 {
     assert(_mode == Mode::FindingRed);
 
@@ -150,21 +150,31 @@ Result SignalFinder::TryFindRedSignal(Mat& img, Mat& dst, bool drawResult)
     double maxCC = -1.0;
     Mat redSignal;
     Rect redSignalRect;
+    size_t redIndex;
     for (int i = 0; i < candImg.size(); i++)
     {
-        double r = CompareImages(RED_SIGNAL_BASE_IMG, candImg[i]);
-        if (r >= red_threshold && r > maxCC) {
-            maxCC = r;
+        // まずは候補１つに対するテンプレート内での最高値を出す
+        std::vector<double> r;
+        for (int j = 0; j < RED_SIGNAL_FILE_CNT; j++)
+            r.push_back(CompareImages(RED_SIGNAL_BASE_IMG[j], candImg[i]));
+        size_t r_max_index = std::distance(r.begin(), std::max_element(r.begin(), r.end()));
+        double r_max = r[r_max_index];
+
+        // 今まで候補よりも良ければ、更新
+        if (r_max >= red_threshold && r_max > maxCC) {
+            maxCC = r_max;
             redSignal = candImg[i];
             redSignalRect = candImgRect[i];
+            redIndex = r_max_index;
         }
+
         // 赤信号相関係数の描画
         if (drawResult) {
             Point pt = Point(candImgRect[i].x + candImgRect[i].width, candImgRect[i].y);
-            if (r >= red_threshold)
-                Labeling(dst, std::to_string(r), pt, 0.3, Scalar(0, 0, 200));
+            if (r_max >= red_threshold)
+                Labeling(dst, std::to_string(r_max), pt, 0.3, Scalar(0, 0, 200));
             else
-                Labeling(dst, std::to_string(r), pt, 0.3);
+                Labeling(dst, std::to_string(r_max), pt, 0.3);
         }
     }
     if (maxCC < red_threshold) {
@@ -206,7 +216,7 @@ Result SignalFinder::TryFindRedSignal(Mat& img, Mat& dst, bool drawResult)
 }
 
 // 青信号を待つ処理を行う
-Result SignalFinder::WaitForBlueSignal(Mat& img, Mat& dst, bool drawResult)
+Result SignalFinder2019::WaitForBlueSignal(Mat& img, Mat& dst, bool drawResult)
 {
     assert(_mode == Mode::WaitingBlue);
     assert(_redAreaBuf.IsFilled());
@@ -214,9 +224,8 @@ Result SignalFinder::WaitForBlueSignal(Mat& img, Mat& dst, bool drawResult)
 
     const int gaussKSize = 5;          // ガウスフィルタのカーネルサイズ
     const double gaussSigma = 3.0;     // ガウスフィルタの半径
-    const double red_threshold = 0.9;  // 赤信号の相関係数閾値
-    const double blu_threshold = 0.6;  // 青信号の相関係数閾値
-    const double blu_threshold_bk = 0.8; // 青信号(逆光)の相関係数閾値
+    const double red_threshold = 0.925;  // 赤信号の相関係数閾値
+    const double blu_threshold = 0.925;  // 青信号の相関係数閾値
 
                                          // 描画準備
     if (drawResult) {
@@ -337,6 +346,7 @@ Result SignalFinder::WaitForBlueSignal(Mat& img, Mat& dst, bool drawResult)
             Labeling(dst, std::to_string(red_maxCC), pt, 0.3, Scalar(0, 0, 200));
         else
             Labeling(dst, std::to_string(red_maxCC), pt, 0.3);
+
     }
 
     // 赤信号であった場合の処理
@@ -353,52 +363,36 @@ Result SignalFinder::WaitForBlueSignal(Mat& img, Mat& dst, bool drawResult)
 
     // 赤信号でなかった場合、青信号か判断する
     double blu_maxCC = -1.0;
-    Mat max_bluImg;
-    Rect max_bluRect;
+    Mat bluImg;
+    Rect bluRect;
     for (int i = 0; i < candImg.size(); i++)
     {
-        // 基本青信号テンプレートとの相関係数を計算
-        double r = CompareImages(BLUE_SIGNAL_BASE_IMG, candImg[i]);   // 普通の青信号テンプレートと比較
-        if (r > blu_maxCC) {
-            blu_maxCC = r;
-            max_bluImg = candImg[i];
-            max_bluRect = candImgRect[i];
+        // まずは候補１つに対するテンプレート内での相関係数最高値を出す
+        std::vector<double> r;
+        for (int j = 0; j < BLUE_SIGNAL_FILE_CNT; j++)
+            r.push_back(CompareImages(BLUE_SIGNAL_BASE_IMG[j], candImg[i]));
+        size_t r_max_index = std::distance(r.begin(), std::max_element(r.begin(), r.end()));
+        double r_max = r[r_max_index];
+
+        // 今までの候補よりも良ければ、更新
+        if (r_max > blu_maxCC) {
+            blu_maxCC = r_max;
+            bluImg = candImg[i];
+            bluRect = candImgRect[i];
         }
     }
 
     // 普通の青信号の相関係数描画
-    if (drawResult && candImg.size() > 0) {
-        Point pt = Point(max_bluRect.x + max_bluRect.width, max_bluRect.y + 20);
+    if (drawResult && candImg.size() > 0 ) {
+        Point pt = Point(bluRect.x + bluRect.width, bluRect.y + 20);
         if (blu_maxCC >= blu_threshold)
             Labeling(dst, std::to_string(blu_maxCC), pt, 0.3, Scalar(255, 0, 0));
         else
             Labeling(dst, std::to_string(blu_maxCC), pt, 0.3);
     }
 
-    // 赤信号出なかった場合、逆光の青信号か判断する
-    double blu_maxCC_bk = -1.0;
-    for (int i = 0; i < candImg.size(); i++)
-    {
-        // 逆光青信号テンプレートとの相関係数を計算
-        double r_bk = CompareImages(BLUE_SIGNAL_BK_BASE_IMG, candImg[i]);  // 逆光用テンプレートと比較
-        if (r_bk > blu_maxCC_bk) {
-            blu_maxCC_bk = r_bk;
-            max_bluImg = candImg[i];
-            max_bluRect = candImgRect[i];
-        }
-    }
-
-    // 青信号(逆光)の相関係数描画
-    if (drawResult && candImg.size() > 0) {
-        Point pt = Point(max_bluRect.x + max_bluRect.width, max_bluRect.y + 40);
-        if (blu_maxCC_bk >= blu_threshold_bk)
-            Labeling(dst, std::to_string(blu_maxCC_bk), pt, 0.3, Scalar(255, 0, 0));
-        else
-            Labeling(dst, std::to_string(blu_maxCC_bk), pt, 0.3);
-    }
-
     // 青信号でなかった場合
-    if (blu_maxCC < blu_threshold && blu_maxCC_bk < blu_threshold_bk)
+    if (blu_maxCC < blu_threshold )
     {
         _redSignalLostCounter++;
 
@@ -426,7 +420,7 @@ Result SignalFinder::WaitForBlueSignal(Mat& img, Mat& dst, bool drawResult)
     return Result::FoundBlueSignal;
 }
 
-Result SignalFinder::FoundBlueSignal(Mat& img, Mat& dst, bool drawResult) {
+Result SignalFinder2019::FoundBlueSignal(Mat& img, Mat& dst, bool drawResult) {
 
     // 青信号発見情報を規定回数まで出力する
     if (_bluSignalCounter < BLUE_SIGNAL_FRAMES) {
@@ -447,7 +441,7 @@ Result SignalFinder::FoundBlueSignal(Mat& img, Mat& dst, bool drawResult) {
 }
 
 // モードの遷移を行う
-void SignalFinder::MoveMode(Mode mode)
+void SignalFinder2019::MoveMode(Mode mode)
 {
     if (mode == Mode::Idling) {
         _mode = Mode::Idling;
@@ -474,7 +468,7 @@ void SignalFinder::MoveMode(Mode mode)
 
 // HSVによる閾値処理によって赤信号領域画像を取得する
 // srcはカラー画像, dstは8bitの２値画像
-void SignalFinder::GetRedSignalArea(cv::Mat& src, cv::Mat& dst)
+void SignalFinder2019::GetRedSignalArea(cv::Mat& src, cv::Mat& dst)
 {
     assert(src.type() == CV_8UC3);
     int h = src.rows, w = src.cols;

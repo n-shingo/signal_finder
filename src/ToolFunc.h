@@ -14,31 +14,27 @@ namespace sn {
 
         using namespace cv;
 
-        // ã‚¬ã‚¦ã‚·ã‚¢ãƒ³ãƒ•ã‚£ãƒ«ã‚¿ã‚’ã‹ã‘ã‚‹
+        // ƒKƒEƒVƒAƒ“ƒtƒBƒ‹ƒ^‚ğ‚©‚¯‚é
         void Gaussian(Mat& src, Mat& dst, int size, double sigma, bool inplace = false);
 
-        // RGBç”»åƒã‚’HSVæˆåˆ†ã«åˆ†é›¢ã™ã‚‹
+        // RGB‰æ‘œ‚ğHSV¬•ª‚É•ª—£‚·‚é
         void SplitToHSV(Mat& src, Mat& dstH, Mat& dstS, Mat &dstV);
 
         //
-        // ã¤ãªãŒã£ã¦ã„ã‚‹(8è¿‘å‚)é ˜åŸŸæ¯ã«ç”»åƒã‚’åˆ†å‰²ã™ã‚‹.
-        // dstã¯åˆ†å‰²ã•ã‚ŒãŸç”»åƒç¾¤, rectsã¯å…ƒç”»åƒã«å¯¾ã™ã‚‹çŸ©å½¢é ˜åŸŸã‚’è¡¨ã™
-        // ãƒ‰ãƒƒãƒˆã®ã‚ˆã†ãª1ç‚¹ã®ãƒ‡ãƒ¼ã‚¿ã¯å‡ºåŠ›ãƒ‡ãƒ¼ã‚¿ã«å«ã‚ãªã„
+        // ‚Â‚È‚ª‚Á‚Ä‚¢‚é(8‹ß–T)—Ìˆæ–ˆ‚É‰æ‘œ‚ğ•ªŠ„‚·‚é.
+        // dst‚Í•ªŠ„‚³‚ê‚½‰æ‘œŒQ, rects‚ÍŒ³‰æ‘œ‚É‘Î‚·‚é‹éŒ`—Ìˆæ‚ğ•\‚·
+        // ƒhƒbƒg‚Ì‚æ‚¤‚È1“_‚Ìƒf[ƒ^‚Ío—Íƒf[ƒ^‚ÉŠÜ‚ß‚È‚¢
         //
         void SplitImageRegion(Mat &gray, std::vector< Mat > &dst, std::vector< Rect > &rects);
 
-        // é‡å¿ƒã‚’å–å¾—ã™ã‚‹
+        // dS‚ğæ“¾‚·‚é
         void GetCOG(std::vector< Mat > &regions, std::vector< Rect > &rects, std::vector< Point > &cog);
 
-        // ï¼’ã¤ã®ç”»åƒã‚’æ¯”ã¹ã€ç›¸é–¢ä¿‚æ•°ã‚’è¿”ã™
+        // ‚Q‚Â‚Ì‰æ‘œ‚ğ”ä‚×A‘ŠŠÖŒW”‚ğ•Ô‚·
         double CompareImages(Mat& img1, Mat& img2);
 
-        // ãƒ©ãƒ™ãƒ«ã‚’æç”»ã™ã‚‹
-        void Labeling(Mat& img, String str, Point pos = Point(0, 0), double fontscale = 0.375, Scalar bgColor = Scalar(0.,0.,0.));
-
-        // å®Ÿè¡Œãƒ•ã‚¡ã‚¤ãƒ«ã®ãƒ‡ã‚£ãƒ¬ã‚¯ãƒˆãƒªã‚’å–å¾—ã™ã‚‹
-        char* GetExeDir(char* buf, size_t size);
-
+        // ƒ‰ƒxƒ‹‚ğ•`‰æ‚·‚é
+        void Labeling(Mat& img, String str, Point pos = Point(0, 0), double fontscale = 0.375, Scalar bgColor = Scalar(0., 0., 0.));
 
     }
 }

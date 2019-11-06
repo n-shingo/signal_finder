@@ -9,53 +9,40 @@
 
 #include <opencv2/opencv.hpp>
 #include "Buffers.h"
+#include "MyEnums.h"
 
 namespace sn
 {
-    using namespace cv;
-
-    // SignalFinderã®çŠ¶æ…‹
-    enum Mode {
-        Idling,     // ã‚¢ã‚¤ãƒ‰ãƒªãƒ³ã‚°ä¸­
-        FindingRed, // èµ¤ä¿¡å·æ¢ç´¢ä¸­
-        WaitingBlue, // é’ä¿¡å·å¾…ã¡
-        FoundBlue   // é’ä¿¡å·ç™ºè¦‹
-    };
-
-    // AnaylzeImageã‚’ã—ãŸæ™‚ã®çµæœ
-    enum Result {
-        NoProcess,         // ä½•ã‚‚ã—ãªã„
-        LookingForRed,     // èµ¤ä¿¡å·ã‚’æ¢ã—ã¦ã„ã‚‹
-        FoundRed,          // èµ¤ä¿¡å·ã‚’ç™ºè¦‹ã—ãŸ
-        WaitingForBlue,    // é’ä¿¡å·å¾…ã¡
-        LostRed,           // èµ¤ä¿¡å·ã‚’è¦‹å¤±ã£ãŸ
-        FoundBlueSignal,         // é’ä¿¡å·ã‚’ç™ºè¦‹ã—ãŸ
-        Error              // ã‚¨ãƒ©ãƒ¼
-    };
-
     class SignalFinder {
 
     private:
 
         //
-        // å›ºå®šå€¤ (æ§‹é€ ä½“ãªã©ã¯ã‚³ãƒ³ã‚¹ãƒˆãƒ©ã‚¯ã‚¿ã§åˆæœŸåŒ–)
+        // ŒÅ’è’l (\‘¢‘Ì‚È‚Ç‚ÍƒRƒ“ƒXƒgƒ‰ƒNƒ^‚Å‰Šú‰»)
         //
-        Rect SIGNAL_LOCATE_FROM_RED; // ãƒ†ãƒ³ãƒ—ãƒ¬ãƒ¼ãƒˆç›¸å¯¾ä½ç½®
-        const char RED_SIGNAL_FILE[256] = "../res/red_signal_average.bmp";  // å¹³å‡èµ¤ä¿¡å·ç”»åƒ
-        const char BLUE_SIGNAL_FILE[256] = "../res/blu_signal_average.bmp"; // å¹³å‡é’ä¿¡å·ç”»åƒ
-        const char BLUE_SIGNAL_BK_FILE[256] = "../res/blu_signal_backlight_average.bmp"; // é€†å…‰æ™‚å¹³å‡é’ä¿¡å·ç”»åƒ
+        Rect SIGNAL_LOCATE_FROM_RED; // ƒeƒ“ƒvƒŒ[ƒg‘Š‘ÎˆÊ’u
+#ifdef __linux__
+        const char RED_SIGNAL_FILE[256] = "../res/red_signal_average.bmp";  // •½‹ÏÔM†‰æ‘œ
+        const char BLUE_SIGNAL_FILE[256] = "../res/blu_signal_average.bmp"; // •½‹ÏÂM†‰æ‘œ
+        const char BLUE_SIGNAL_BK_FILE[256] = "../res/blu_signal_backlight_average.bmp"; // ‹tŒõ•½‹ÏÂM†‰æ‘œ
+#endif
+#ifdef _WIN64
+        const char RED_SIGNAL_FILE[256] = "C:/Users/shingo/source/repos/tc2018_signal_proto/x64/res/red_signal_average.bmp";  // •½‹ÏÔM†‰æ‘œ
+        const char BLUE_SIGNAL_FILE[256] = "C:/Users/shingo/source/repos/tc2018_signal_proto/x64/res/blu_signal_average.bmp"; // •½‹ÏÂM†‰æ‘œ
+        const char BLUE_SIGNAL_BK_FILE[256] = "C:/Users/shingo/source/repos/tc2018_signal_proto/x64/res/blu_signal_backlight_average.bmp"; // ‹tŒõ•½‹ÏÂM†‰æ‘œ
+#endif
         Mat RED_SIGNAL_BASE_IMG;
         Mat BLUE_SIGNAL_BASE_IMG;
         Mat BLUE_SIGNAL_BK_BASE_IMG;
-        const int RED_AREA_BUF_SIZE = 10; // èµ¤ä¿¡å·ã‚’è¦‹ã¤ã‘ã‚‹ãŸã‚ã®ç”»åƒãƒãƒƒãƒ•ã‚¡ã‚µã‚¤ã‚º
-        const int IMAGE_BUF_SIZE = 10; // å–ã£ã¦ãŠãéå»ã®ç”»åƒã®ãƒãƒƒãƒ•ã‚¡ã‚µã‚¤ã‚º
-        const int RED_SIGNAL_BUF_SIZE = 3;  // èµ¤ä¿¡å·ã§ã‚ã‚‹ã‹ç¢ºèªã™ã‚‹ãŸã‚ã®ãƒ‡ãƒ¼ã‚¿ã®ãƒãƒƒãƒ•ã‚¡æ•°
-        const int MAX_LOST_FRAMES = 10; // ã“ã®ãƒ•ãƒ¬ãƒ¼ãƒ æ•°èµ¤ä¿¡å·ã‚’ãƒ­ã‚¹ãƒˆã—ãŸã‚‰ã€èµ¤ä¿¡å·å†æ¤œå‡º
-        const int BLUE_SIGNAL_FRAMES = 5; // é’ä¿¡å·ç™ºè¦‹ã‹ã‚‰ã“ã®ãƒ•ãƒ¬ãƒ¼ãƒ æ•°ã€ç™ºè¦‹çµæœã‚’å‡ºåŠ›ã™ã‚‹
+        const int RED_AREA_BUF_SIZE = 10; // ÔM†‚ğŒ©‚Â‚¯‚é‚½‚ß‚Ì‰æ‘œƒoƒbƒtƒ@ƒTƒCƒY
+        const int IMAGE_BUF_SIZE = 10; // æ‚Á‚Ä‚¨‚­‰ß‹‚Ì‰æ‘œ‚Ìƒoƒbƒtƒ@ƒTƒCƒY
+        const int RED_SIGNAL_BUF_SIZE = 3;  // ÔM†‚Å‚ ‚é‚©Šm”F‚·‚é‚½‚ß‚Ìƒf[ƒ^‚Ìƒoƒbƒtƒ@”
+        const int MAX_LOST_FRAMES = 10; // ‚±‚ÌƒtƒŒ[ƒ€”ÔM†‚ğƒƒXƒg‚µ‚½‚çAÔM†ÄŒŸo
+        const int BLUE_SIGNAL_FRAMES = 5; // ÂM†”­Œ©‚©‚ç‚±‚ÌƒtƒŒ[ƒ€”A”­Œ©Œ‹‰Ê‚ğo—Í‚·‚é
 
 
     public:
-        // ã‚³ãƒ³ã‚¹ãƒˆãƒ©ã‚¯ã‚¿
+        // ƒRƒ“ƒXƒgƒ‰ƒNƒ^
         SignalFinder()
         {
             this->SIGNAL_LOCATE_FROM_RED = Rect(-8, -8, 18, 32);
@@ -67,16 +54,16 @@ namespace sn
             BLUE_SIGNAL_BK_BASE_IMG = imread(BLUE_SIGNAL_BK_FILE);
         }
 
-        // ãƒ‡ã‚¹ãƒˆãƒ©ã‚¯ã‚¿
+        // ƒfƒXƒgƒ‰ƒNƒ^
         ~SignalFinder() {}
 
-        // ä¿¡å·æ¤œå‡ºå‡¦ç†ã®é–‹å§‹
+        // M†ŒŸoˆ—‚ÌŠJn
         void Start();
 
-        // ä¿¡å·æ¤œå‡ºå‡¦ç†ã®çµ‚äº†(å¼·åˆ¶çš„ã«IdlingçŠ¶æ…‹ã«ã™ã‚‹)
+        // M†ŒŸoˆ—‚ÌI—¹(‹­§“I‚ÉIdlingó‘Ô‚É‚·‚é)
         void Stop();
 
-        // ç”»åƒã‚’è¿½åŠ ã—ã€è§£æï¼†å‡¦ç†ã‚’è¡Œã†
+        // ‰æ‘œ‚ğ’Ç‰Á‚µA‰ğÍ•ˆ—‚ğs‚¤
         Result AnalyzeImage(Mat& img, Mat& dst, bool resultImg);
 
 
@@ -84,40 +71,40 @@ namespace sn
     private:
 
         //////////////////////
-        //    éå…¬é–‹ãƒ¡ãƒ³ãƒ    //
+        //    ”ñŒöŠJƒƒ“ƒo    //
         //////////////////////
 
-        Mode _mode = Mode::Idling; // ç¾åœ¨ã®ãƒ¢ãƒ¼ãƒ‰
-        ImageBuffer _redAreaBuf;   // HSVã‹ã‚‰èµ¤é ˜åŸŸã‚’æ±‚ã‚ãŸï¼’å€¤ç”»åƒã‚’æºœã‚ã¦ã‚ã¦ãŠããŸã‚ã®ãƒãƒƒãƒ•ã‚¡
-        ImageBuffer _redSigImgBuf; // èµ¤ä¿¡å·ã¨æ¤œå‡ºã•ã‚ŒãŸç”»åƒã®ãƒãƒƒãƒ•ã‚¡
-        DoubleBuffer _redCCBuf;    // èµ¤ä¿¡å·ã¨ã®ç›¸é–¢ä¿‚æ•°ã‚’æºœã‚ã¦ãŠããƒãƒƒãƒ•ã‚¡
-        Mat _redSignal; // èµ¤ä¿¡å·ç™ºè¦‹æ™‚ã®èµ¤ä¿¡å·ç”»åƒ
-        int _redSignalLostCounter; // é’ä¿¡å·å¾…ã¡ã®æ™‚ã€èµ¤ä¿¡å·ã‚’ãƒ­ã‚¹ãƒˆã—ãŸå›æ•°ã‚’æ•°ãˆã‚‹ã‚«ã‚¦ãƒ³ã‚¿ãƒ¼
-        int _bluSignalCounter;     // é’ä¿¡å·ç™ºè¦‹ã‹ã‚‰çµŒéã—ãŸãƒ•ãƒ¬ãƒ¼ãƒ æ•°
+        Mode _mode = Mode::Idling; // Œ»İ‚Ìƒ‚[ƒh
+        ImageBuffer _redAreaBuf;   // HSV‚©‚çÔ—Ìˆæ‚ğ‹‚ß‚½‚Q’l‰æ‘œ‚ğ—­‚ß‚Ä‚ß‚Ä‚¨‚­‚½‚ß‚Ìƒoƒbƒtƒ@
+        ImageBuffer _redSigImgBuf; // ÔM†‚ÆŒŸo‚³‚ê‚½‰æ‘œ‚Ìƒoƒbƒtƒ@
+        DoubleBuffer _redCCBuf;    // ÔM†‚Æ‚Ì‘ŠŠÖŒW”‚ğ—­‚ß‚Ä‚¨‚­ƒoƒbƒtƒ@
+        Mat _redSignal; // ÔM†”­Œ©‚ÌÔM†‰æ‘œ
+        int _redSignalLostCounter; // ÂM†‘Ò‚¿‚ÌAÔM†‚ğƒƒXƒg‚µ‚½‰ñ”‚ğ”‚¦‚éƒJƒEƒ“ƒ^[
+        int _bluSignalCounter;     // ÂM†”­Œ©‚©‚çŒo‰ß‚µ‚½ƒtƒŒ[ƒ€”
 
 
         //////////////////////
-        //   éå…¬é–‹ãƒ¡ã‚½ãƒƒãƒ‰   //
+        //   ”ñŒöŠJƒƒ\ƒbƒh   //
         //////////////////////
-        
-        // ã‚¢ã‚¤ãƒ‰ãƒªãƒ³ã‚°ä¸­ã®ä½•ã‚‚ã—ãªã„å‡¦ç†
+
+                                   // ƒAƒCƒhƒŠƒ“ƒO’†‚Ì‰½‚à‚µ‚È‚¢ˆ—
         Result ProcessNothing(Mat& img, Mat& dst, bool drawResult);
 
-        // èµ¤ä¿¡å·ã®æ¢ç´¢ã‚’è¡Œã†
+        // ÔM†‚Ì’Tõ‚ğs‚¤
         Result TryFindRedSignal(Mat& img, Mat& dst, bool drawResult);
 
-        // é’ä¿¡å·ã‚’å¾…ã¤å‡¦ç†ã‚’è¡Œã†
+        // ÂM†‚ğ‘Ò‚Âˆ—‚ğs‚¤
         Result WaitForBlueSignal(Mat& img, Mat& dst, bool drawResult);
 
-        // é’ä¿¡å·ã‚’è¦‹ã¤ã‘ãŸå¾Œã®å‡¦ç†ã‚’è¡Œã†
+        // ÂM†‚ğŒ©‚Â‚¯‚½Œã‚Ìˆ—‚ğs‚¤
         Result FoundBlueSignal(Mat& img, Mat& dst, bool drawResult);
 
-        // ãƒ¢ãƒ¼ãƒ‰é·ç§»ã‚’ã™ã‚‹
+        // ƒ‚[ƒh‘JˆÚ‚ğ‚·‚é
         void MoveMode(Mode mode);
 
 
-        // HSVã«ã‚ˆã‚‹é–¾å€¤å‡¦ç†ã«ã‚ˆã£ã¦èµ¤ä¿¡å·é ˜åŸŸç”»åƒã‚’å–å¾—ã™ã‚‹
-        // srcã¯ã‚«ãƒ©ãƒ¼ç”»åƒ, dstã¯8bitã®ï¼’å€¤ç”»åƒ
+        // HSV‚É‚æ‚éè‡’lˆ—‚É‚æ‚Á‚ÄÔM†—Ìˆæ‰æ‘œ‚ğæ“¾‚·‚é
+        // src‚ÍƒJƒ‰[‰æ‘œ, dst‚Í8bit‚Ì‚Q’l‰æ‘œ
         void GetRedSignalArea(cv::Mat& src, cv::Mat& dst);
 
 

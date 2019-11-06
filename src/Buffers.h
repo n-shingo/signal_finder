@@ -16,66 +16,66 @@ namespace sn {
     ///////////////////////////////
     //
     // class ImageBuffer
-    // ç”»åƒã‚’æºœã‚ã‚‹ãŸã‚ã®ãƒãƒƒãƒ•ã‚¡ã‚¯ãƒ©ã‚¹
+    // ‰æ‘œ‚ğ—­‚ß‚é‚½‚ß‚Ìƒoƒbƒtƒ@ƒNƒ‰ƒX
     //
     ///////////////////////////////
     class ImageBuffer {
 
 
-    ////////////////
-    //  å…¬é–‹ãƒ¡ãƒ³ãƒ  //
-    ////////////////
+        ////////////////
+        //  ŒöŠJƒƒ“ƒo  //
+        ////////////////
     public:
 
-        // ã‚³ãƒ³ã‚¹ãƒˆãƒ©ã‚¯ã‚¿ & ãƒ‡ã‚¹ãƒˆãƒ©ã‚¯ã‚¿
-        ImageBuffer( int bufsize = 5);
+        // ƒRƒ“ƒXƒgƒ‰ƒNƒ^ & ƒfƒXƒgƒ‰ƒNƒ^
+        ImageBuffer(int bufsize = 5);
         ~ImageBuffer();
 
-        // ã“ã‚Œã¾ã§ã®ç”»åƒã‚’ã‚¯ãƒªã‚¢ã—ã€busizeã‚’å¤‰æ›´ã™ã‚‹
-        // bufsize=0ã§ã“ã‚Œã¾ã§ã¨åŒã˜bufsizeã¨ã™ã‚‹
+        // ‚±‚ê‚Ü‚Å‚Ì‰æ‘œ‚ğƒNƒŠƒA‚µAbusize‚ğ•ÏX‚·‚é
+        // bufsize=0‚Å‚±‚ê‚Ü‚Å‚Æ“¯‚¶bufsize‚Æ‚·‚é
         void Clear(int bufsize = 0);
 
-        // ç”»åƒã‚’ä¸€ã¤è¿½åŠ ã™ã‚‹
+        // ‰æ‘œ‚ğˆê‚Â’Ç‰Á‚·‚é
         void AddImage(Mat& src);
 
-        // ãƒãƒƒãƒ•ã‚¡ã®å¹³å‡ç”»åƒã‚’å–å¾—ã™ã‚‹
+        // ƒoƒbƒtƒ@‚Ì•½‹Ï‰æ‘œ‚ğæ“¾‚·‚é
         void AverageImage(Mat& ave);
 
-        // è²¯ã‚ã‚‰ã‚ŒãŸãƒãƒƒãƒ•ã‚¡ã®æ•°
+        // ’™‚ß‚ç‚ê‚½ƒoƒbƒtƒ@‚Ì”
         int Count();
 
-        // ãƒãƒƒãƒ•ã‚¡ãŒæº€ã‚¿ãƒ³ã‹
+        // ƒoƒbƒtƒ@‚ª–ƒ^ƒ“‚©
         bool IsFilled();
 
-        // æ·»å­—æ¼”ç®—å­ã§ã‚¢ã‚¯ã‚»ã‚¹
+        // “Yš‰‰Zq‚ÅƒAƒNƒZƒX
         const Mat& operator[](std::size_t n) const& { return _buf[n]; }
 
-    ////////////////
-    // éå…¬é–‹ãƒ¡ãƒ³ãƒ //
-    ////////////////
+        ////////////////
+        // ”ñŒöŠJƒƒ“ƒo //
+        ////////////////
     private:
 
-        int _count;    // æºœã¾ã£ã¦ã„ã‚‹ç”»åƒã®æ•°
-        int _bufsize;  // ãƒãƒƒãƒ•ã‚¡ã®ã‚µã‚¤ã‚º
-        Mat* _buf;     // ç”»åƒã‚’è²¯ã‚ã¦ãŠãå ´æ‰€
-        int _pos;      // æ¬¡ã«è²¯ã‚è¾¼ã‚€ç”»åƒã®å ´æ‰€ã‚’ç¤ºã™å¤‰æ•°
+        int _count;    // —­‚Ü‚Á‚Ä‚¢‚é‰æ‘œ‚Ì”
+        int _bufsize;  // ƒoƒbƒtƒ@‚ÌƒTƒCƒY
+        Mat* _buf;     // ‰æ‘œ‚ğ’™‚ß‚Ä‚¨‚­êŠ
+        int _pos;      // Ÿ‚É’™‚ß‚Ş‰æ‘œ‚ÌêŠ‚ğ¦‚·•Ï”
 
     };
 
     ///////////////////////////////
     //
     // class DoubleBuffer
-    // doubleã‚’æºœã‚ã‚‹ãŸã‚ã®ãƒãƒƒãƒ•ã‚¡ã‚¯ãƒ©ã‚¹
+    // double‚ğ—­‚ß‚é‚½‚ß‚Ìƒoƒbƒtƒ@ƒNƒ‰ƒX
     //
     ///////////////////////////////
     class DoubleBuffer {
 
         ////////////////
-        //  å…¬é–‹ãƒ¡ãƒ³ãƒ  //
+        //  ŒöŠJƒƒ“ƒo  //
         ////////////////
     public:
 
-        // ã‚³ãƒ³ã‚¹ãƒˆãƒ©ã‚¯ã‚¿ & ãƒ‡ã‚¹ãƒˆãƒ©ã‚¯ã‚¿
+        // ƒRƒ“ƒXƒgƒ‰ƒNƒ^ & ƒfƒXƒgƒ‰ƒNƒ^
         DoubleBuffer(int bufsize = 5) {
             assert(bufsize > 0);
 
@@ -88,8 +88,11 @@ namespace sn {
             delete[] _buf;
         }
 
-        // ã“ã‚Œã¾ã§ã®å†…å®¹ã‚’ã‚¯ãƒªã‚¢ã—ã€busizeã‚’å¤‰æ›´ã™ã‚‹
-        // bufsize=0ã§ã“ã‚Œã¾ã§ã¨åŒã˜bufsizeã¨ã™ã‚‹
+        // ƒCƒfƒbƒNƒX‚ÅƒAƒNƒZƒX
+        double& operator[](std::size_t n) { return _buf[n]; }
+
+        // ‚±‚ê‚Ü‚Å‚Ì“à—e‚ğƒNƒŠƒA‚µAbusize‚ğ•ÏX‚·‚é
+        // bufsize=0‚Å‚±‚ê‚Ü‚Å‚Æ“¯‚¶bufsize‚Æ‚·‚é
         void Clear(int bufsize = 0) {
             if (bufsize != 0) {
                 delete[] _buf;
@@ -100,7 +103,7 @@ namespace sn {
             _pos = 0;
         }
 
-        // ãƒ‡ãƒ¼ã‚¿ã‚’ä¸€ã¤è¿½åŠ ã™ã‚‹
+        // ƒf[ƒ^‚ğˆê‚Â’Ç‰Á‚·‚é
         void AddDouble(double data) {
             _buf[_pos] = data;
             if (_count != _bufsize) _count++;
@@ -109,17 +112,17 @@ namespace sn {
             _pos %= _bufsize;
         }
 
-        // è²¯ã‚ã‚‰ã‚ŒãŸãƒãƒƒãƒ•ã‚¡ã®æ•°
+        // ’™‚ß‚ç‚ê‚½ƒoƒbƒtƒ@‚Ì”
         int Count() {
             return _count;
         }
 
-        // ãƒãƒƒãƒ•ã‚¡ãŒæº€ã‚¿ãƒ³ã‹
+        // ƒoƒbƒtƒ@‚ª–ƒ^ƒ“‚©
         bool IsFilled() {
             return _count == _bufsize;
         }
 
-        // æœ€å¤§å€¤ã®ã‚¤ãƒ³ãƒ‡ãƒƒã‚¯ã‚¹ç•ªå·ã‚’å–å¾—
+        // Å‘å’l‚ÌƒCƒ“ƒfƒbƒNƒX”Ô†‚ğæ“¾
         int GetMaxIndex()
         {
             if (_count == 0) return -1;
@@ -135,14 +138,102 @@ namespace sn {
 
 
         ////////////////
-        // éå…¬é–‹ãƒ¡ãƒ³ãƒ //
+        // ”ñŒöŠJƒƒ“ƒo //
         ////////////////
     private:
 
-        int _count;    // æºœã¾ã£ã¦ã„ã‚‹ãƒ‡ãƒ¼ã‚¿ã®æ•°
-        int _bufsize;  // ãƒãƒƒãƒ•ã‚¡ã®ã‚µã‚¤ã‚º
-        double* _buf;     // ãƒãƒƒãƒ•ã‚¡ã¸ã®ãƒã‚¤ãƒ³ã‚¿
-        int _pos;      // æ¬¡ã«æ ¼ç´ã™ã‚‹å ´æ‰€ã‚’ç¤ºã™å¤‰æ•°
+        int _count;    // —­‚Ü‚Á‚Ä‚¢‚éƒf[ƒ^‚Ì”
+        int _bufsize;  // ƒoƒbƒtƒ@‚ÌƒTƒCƒY
+        double* _buf;     // ƒoƒbƒtƒ@‚Ö‚Ìƒ|ƒCƒ“ƒ^
+        int _pos;      // Ÿ‚ÉŠi”[‚·‚éêŠ‚ğ¦‚·•Ï”
+
+    };
+
+
+    ///////////////////////////////
+    //
+    // class UintBuffer
+    // uint‚ğ—­‚ß‚é‚½‚ß‚Ìƒoƒbƒtƒ@ƒNƒ‰ƒX
+    //
+    ///////////////////////////////
+    class UintBuffer {
+
+        ////////////////
+        //  ŒöŠJƒƒ“ƒo  //
+        ////////////////
+    public:
+
+        // ƒRƒ“ƒXƒgƒ‰ƒNƒ^ & ƒfƒXƒgƒ‰ƒNƒ^
+        UintBuffer(int bufsize = 5) {
+            assert(bufsize > 0);
+
+            _buf = new unsigned int[bufsize];
+            _count = 0;
+            _bufsize = bufsize;
+            _pos = 0;
+        }
+        ~UintBuffer() {
+            delete[] _buf;
+        }
+
+        // ƒCƒfƒbƒNƒX‚ÅƒAƒNƒZƒX
+        unsigned int& operator[](std::size_t n) { return _buf[n]; }
+
+        // ‚±‚ê‚Ü‚Å‚Ì“à—e‚ğƒNƒŠƒA‚µAbusize‚ğ•ÏX‚·‚é
+        // bufsize=0‚Å‚±‚ê‚Ü‚Å‚Æ“¯‚¶bufsize‚Æ‚·‚é
+        void Clear(int bufsize = 0) {
+            if (bufsize != 0) {
+                delete[] _buf;
+                _buf = new unsigned int[bufsize];
+                _bufsize = bufsize;
+            }
+            _count = 0;
+            _pos = 0;
+        }
+
+        // ƒf[ƒ^‚ğˆê‚Â’Ç‰Á‚·‚é
+        void AddUint(unsigned int data) {
+            _buf[_pos] = data;
+            if (_count != _bufsize) _count++;
+
+            _pos++;
+            _pos %= _bufsize;
+        }
+
+        // ’™‚ß‚ç‚ê‚½ƒoƒbƒtƒ@‚Ì”
+        int Count() {
+            return _count;
+        }
+
+        // ƒoƒbƒtƒ@‚ª–ƒ^ƒ“‚©
+        bool IsFilled() {
+            return _count == _bufsize;
+        }
+
+        // Å‘å’l‚ÌƒCƒ“ƒfƒbƒNƒX”Ô†‚ğæ“¾
+        int GetMaxIndex()
+        {
+            if (_count == 0) return -1;
+
+            int max = 0;
+            for (int i = 1; i < _count; i++)
+            {
+                if (_buf[max] < _buf[i])
+                    max = i;
+            }
+            return max;
+        }
+
+
+        ////////////////
+        // ”ñŒöŠJƒƒ“ƒo //
+        ////////////////
+    private:
+
+        int _count;    // —­‚Ü‚Á‚Ä‚¢‚éƒf[ƒ^‚Ì”
+        int _bufsize;  // ƒoƒbƒtƒ@‚ÌƒTƒCƒY
+        unsigned int* _buf;     // ƒoƒbƒtƒ@‚Ö‚Ìƒ|ƒCƒ“ƒ^
+        int _pos;      // Ÿ‚ÉŠi”[‚·‚éêŠ‚ğ¦‚·•Ï”
 
     };
 }

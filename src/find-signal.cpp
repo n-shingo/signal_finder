@@ -11,6 +11,7 @@
 #include <ssm.hpp>
 #include <kaw_lib/SSM-Image.hpp>
 #include "SignalFinder.h"
+#include "SignalFinder2019.h"
 #include "signalResultSSM.h"
 #include "tc2018_typedef.hpp"
 #include <ypspur.h>
@@ -55,7 +56,8 @@ int main(int argc, char ** argv)
     int new_stop_type=-256, old_stop_type=-256;
 
     // 画像から信号検出するクラス
-    SignalFinder finder;
+    //SignalFinder finder;
+    SignalFinder2019 finder;
 
     // <--- DECLARATION
 

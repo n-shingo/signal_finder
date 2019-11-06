@@ -4,13 +4,12 @@
 // since: 2018-09-17
 //-------------------------------------------------
 
-#include <unistd.h>
 #include "ToolFunc.h"
 
 
 using namespace cv;
 
-// ã‚¬ã‚¦ã‚·ã‚¢ãƒ³ãƒ•ã‚£ãƒ«ã‚¿ã‚’ã‹ã‘ã‚‹
+// ƒKƒEƒVƒAƒ“ƒtƒBƒ‹ƒ^‚ğ‚©‚¯‚é
 void sn::Tool::Gaussian(cv::Mat& src, cv::Mat& dst, int size, double sigma, bool inplace)
 {
     if (inplace)
@@ -27,7 +26,7 @@ void sn::Tool::Gaussian(cv::Mat& src, cv::Mat& dst, int size, double sigma, bool
 
 }
 
-// RGBç”»åƒã‚’HSVæˆåˆ†ã«åˆ†é›¢ã™ã‚‹
+// RGB‰æ‘œ‚ğHSV¬•ª‚É•ª—£‚·‚é
 void sn::Tool::SplitToHSV(cv::Mat& src, cv::Mat& dstH, cv::Mat& dstS, cv::Mat &dstV)
 {
     assert(src.type() == CV_8UC3);
@@ -43,9 +42,9 @@ void sn::Tool::SplitToHSV(cv::Mat& src, cv::Mat& dstH, cv::Mat& dstS, cv::Mat &d
 
 
 //
-// ã¤ãªãŒã£ã¦ã„ã‚‹(8è¿‘å‚)é ˜åŸŸæ¯ã«ç”»åƒã‚’åˆ†å‰²ã™ã‚‹.
-// dstã¯åˆ†å‰²ã•ã‚ŒãŸç”»åƒç¾¤, rectsã¯å…ƒç”»åƒã«å¯¾ã™ã‚‹çŸ©å½¢é ˜åŸŸã‚’è¡¨ã™
-// ãƒ‰ãƒƒãƒˆã®ã‚ˆã†ãª1ç‚¹ã®ãƒ‡ãƒ¼ã‚¿ã¯å‡ºåŠ›ãƒ‡ãƒ¼ã‚¿ã«å«ã‚ãªã„
+// ‚Â‚È‚ª‚Á‚Ä‚¢‚é(8‹ß–T)—Ìˆæ–ˆ‚É‰æ‘œ‚ğ•ªŠ„‚·‚é.
+// dst‚Í•ªŠ„‚³‚ê‚½‰æ‘œŒQ, rects‚ÍŒ³‰æ‘œ‚É‘Î‚·‚é‹éŒ`—Ìˆæ‚ğ•\‚·
+// ƒhƒbƒg‚Ì‚æ‚¤‚È1“_‚Ìƒf[ƒ^‚Ío—Íƒf[ƒ^‚ÉŠÜ‚ß‚È‚¢
 //
 void sn::Tool::SplitImageRegion(Mat &gray, std::vector< Mat > &dst, std::vector< Rect > &rects)
 {
@@ -58,7 +57,7 @@ void sn::Tool::SplitImageRegion(Mat &gray, std::vector< Mat > &dst, std::vector<
     dst.clear();
     rects.clear();
 
-    Mat clone = gray.clone(); // é ˜åŸŸãŒå‡¦ç†ã•ã‚Œã‚‹ã”ã¨ã«ã©ã‚“ã©ã‚“é»’ããªã£ã¦ã„ãç”»åƒ
+    Mat clone = gray.clone(); // —Ìˆæ‚ªˆ—‚³‚ê‚é‚²‚Æ‚É‚Ç‚ñ‚Ç‚ñ•‚­‚È‚Á‚Ä‚¢‚­‰æ‘œ
     uchar* ptr;
     for (int i = 0; i < rows; i++) {
         ptr = clone.data + i * clone.step;
@@ -73,26 +72,26 @@ void sn::Tool::SplitImageRegion(Mat &gray, std::vector< Mat > &dst, std::vector<
                 Mat contImg = origin.clone();
                 findContours(contImg, contours, hierarchy, CV_RETR_EXTERNAL, CV_CHAIN_APPROX_SIMPLE);
 
-                // countoursãŒã‚¼ãƒ­ã®æ™‚(ãƒ‰ãƒƒãƒˆã‹ãªï¼Ÿï¼‰ã¯åˆ†å‰²ã«å«ã‚ãªã„
+                // countours‚ªƒ[ƒ‚Ì(ƒhƒbƒg‚©‚ÈHj‚Í•ªŠ„‚ÉŠÜ‚ß‚È‚¢
                 if (contours.size() == 0) continue;
 
-                // contoursã®æ•°ãŒç¨€ã«2ä»¥ä¸Šã®æ™‚ãŒã‚ã‚‹ã®ã§ã€ãã®æ™‚ã¯å¢ƒç•Œæ•°ã®å¤šã„ã‚‚ã®ã‚’æ¡ç”¨ã™ã‚‹
+                // contours‚Ì”‚ª‹H‚É2ˆÈã‚Ì‚ª‚ ‚é‚Ì‚ÅA‚»‚Ì‚Í‹«ŠE”‚Ì‘½‚¢‚à‚Ì‚ğÌ—p‚·‚é
                 int max = 0;
                 for (int i = 1; i < contours.size(); i++)
                     if (contours[max].size() > contours[i].size())
                         max = i;
 
-                // é ˜åŸŸå–å¾—
+                // —Ìˆææ“¾
                 Rect rect1 = boundingRect(contours[max]);
 
-                // ç”»åƒä½œæˆ
+                // ‰æ‘œì¬
                 Mat img(rect1.size(), CV_8UC1);
 
-                // ã‚³ãƒ”ãƒ¼ã™ã‚‹
+                // ƒRƒs[‚·‚é
                 Mat src_roi(origin, rect1);
                 src_roi.copyTo(img);
 
-                // vectorã«åã‚ã‚‹
+                // vector‚Éû‚ß‚é
                 dst.push_back(img);
                 rects.push_back(rect1);
             }
@@ -100,7 +99,7 @@ void sn::Tool::SplitImageRegion(Mat &gray, std::vector< Mat > &dst, std::vector<
     }
 }
 
-// é‡å¿ƒã‚’å–å¾—ã™ã‚‹
+// dS‚ğæ“¾‚·‚é
 void sn::Tool::GetCOG(std::vector< Mat > &regions, std::vector< Rect > &rects, std::vector< Point > &cog)
 {
     assert(regions.size() == rects.size());
@@ -109,7 +108,7 @@ void sn::Tool::GetCOG(std::vector< Mat > &regions, std::vector< Rect > &rects, s
 
     for (int i = 0; i < regions.size(); i++)
     {
-        // å„é‡å¿ƒã‚’æ±‚ã‚ã‚‹
+        // ŠedS‚ğ‹‚ß‚é
         cv::Mat img = regions[i];
         cv::Rect rct = rects[i];
         int h = img.rows, w = img.cols;
@@ -133,7 +132,7 @@ void sn::Tool::GetCOG(std::vector< Mat > &regions, std::vector< Rect > &rects, s
     }
 }
 
-// ï¼’ã¤ã®ç”»åƒã‚’æ¯”ã¹ã€ç›¸é–¢ä¿‚æ•°ã‚’è¿”ã™
+// ‚Q‚Â‚Ì‰æ‘œ‚ğ”ä‚×A‘ŠŠÖŒW”‚ğ•Ô‚·
 double sn::Tool::CompareImages(Mat& img1, Mat& img2)
 {
     assert(img1.rows == img2.rows);
@@ -143,7 +142,7 @@ double sn::Tool::CompareImages(Mat& img1, Mat& img2)
     int h = img1.rows;
     int w = img1.cols;
 
-    // å¹³å‡ã‚’æ±‚ã‚ã‚‹
+    // •½‹Ï‚ğ‹‚ß‚é
     double ave1 = 0.0, ave2 = 0.0;
     for (int y = 0; y < h; y++)
     {
@@ -159,7 +158,7 @@ double sn::Tool::CompareImages(Mat& img1, Mat& img2)
     ave1 /= (h*img1.step[0]);
     ave2 /= (h*img1.step[0]);
 
-    // åˆ†æ•£ã‚’æ±‚ã‚ã‚‹
+    // •ªU‚ğ‹‚ß‚é
     double sumaa = 0.0, sumbb = 0.0, sumab = 0.0;
     for (int y = 0; y < h; y++)
     {
@@ -176,48 +175,40 @@ double sn::Tool::CompareImages(Mat& img1, Mat& img2)
         }
     }
 
-    // ç›¸é–¢ä¿‚æ•°
+    // ‘ŠŠÖŒW”
     double r = sumab / sqrt(sumaa * sumbb);
     return r;
 }
 
-// ãƒ©ãƒ™ãƒ«ã‚’æç”»ã™ã‚‹
+// ƒ‰ƒxƒ‹‚ğ•`‰æ‚·‚é
 void sn::Tool::Labeling(Mat& img, String str, Point pos, double fontscale, Scalar bgColor) {
 
-    // æ–‡å­—é ˜åŸŸã®ã‚µã‚¤ã‚ºå–å¾—
+    // •¶š—Ìˆæ‚ÌƒTƒCƒYæ“¾
     const int fontface = cv::FONT_HERSHEY_TRIPLEX;
     const int thickness = 1;
     const int linetype = CV_AA;
     int baseline = 0;
     const cv::Size textsize = cv::getTextSize(str, fontface, fontscale, thickness, &baseline);
 
-    // èƒŒæ™¯è‰²æº–å‚™
+    // ”wŒiF€”õ
     if (img.type() == CV_8U) {
         bgColor = Scalar(bgColor[0]);
     }
 
-    // ãƒ©ãƒ™ãƒ«æº–å‚™
+    // ƒ‰ƒxƒ‹€”õ
     const int mgn = 5;
     const int w = textsize.width + 2 * mgn;
     const int h = textsize.height + 2 * mgn + baseline;
     cv::Size size(w, h);
     cv::Mat label = cv::Mat(size, img.type(), bgColor);
 
-    // ãƒ©ãƒ™ãƒ«ã«æ–‡å­—æç”»
+    // ƒ‰ƒxƒ‹‚É•¶š•`‰æ
     cv::Point textPos((size.width - textsize.width) / 2, (size.height + textsize.height - baseline) / 2);
     cv::putText(label, str, textPos, fontface, fontscale, cvScalar(255, 255, 255), thickness, linetype);
 
-    // ãƒ©ãƒ™ãƒ«ã‚’ç”»åƒã«è²¼ã‚Šã¤kã‚‹
+    // ƒ‰ƒxƒ‹‚ğ‰æ‘œ‚É“\‚è‚Âk‚é
     if (pos.x >= 0 && pos.y >= 0 && pos.x + w < img.cols && pos.y + h < img.rows) {
         cv::Mat roi = img(cv::Rect(pos.x, pos.y, w, h));
         label.copyTo(roi);
     }
-}
-
-// å®Ÿè¡Œãƒ•ã‚¡ã‚¤ãƒ«ã®ãƒ‡ã‚£ãƒ¬ã‚¯ãƒˆãƒªã‚’å–å¾—ã™ã‚‹
-char* sn::Tool::GetExeDir( char* buf, size_t bufsize){
-
-    ssize_t s = readlink( "/proc/self/exe", buf, bufsize-1);
-    // TODO: ã“ã“ã§å®Ÿè¡Œãƒ•ã‚¡ã‚¤ãƒ«ãƒ•ãƒ«ãƒ‘ã‚¹ã‹ã‚‰ãƒ‡ã‚£ãƒ¬ã‚¯ãƒˆãƒªåã«ã™ã‚‹
-    return buf;
 }

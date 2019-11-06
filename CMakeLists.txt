@@ -19,11 +19,11 @@ message(STATUS "CMAKE_CXX_FLAGS_RELEASE: ${CMAKE_CXX_FLAGS_RELEASE}")
 
 find_package(OpenCV REQUIRED)
 
-add_executable(signal_test ./src/TestMain.cpp ./src/SignalFinder.cpp ./src/Buffers.cpp ./src/ToolFunc.cpp)
+add_executable(signal_test ./src/TestMain.cpp ./src/SignalFinder.cpp ./src/SignalFinder2019.cpp ./src/Buffers.cpp ./src/ToolFunc.cpp)
 add_definitions("-std=c++11")
 target_link_libraries(signal_test ${OpenCV_LIBRARIES})
 
-add_executable(find-signal ./src/find-signal.cpp ./src/SignalFinder.cpp ./src/Buffers.cpp ./src/ToolFunc.cpp)
+add_executable(find-signal ./src/find-signal.cpp ./src/SignalFinder.cpp ./src/SignalFinder2019.cpp ./src/Buffers.cpp ./src/ToolFunc.cpp)
 target_link_libraries(find-signal ssm ypspur /usr/local/lib/kaw_lib.a ${OpenCV_LIBRARIES})
 
 

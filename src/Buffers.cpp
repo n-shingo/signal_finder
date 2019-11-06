@@ -8,7 +8,7 @@
 
 using namespace sn;
 
-// ã‚³ãƒ³ã‚¹ãƒˆãƒ©ã‚¯ã‚¿
+// ƒRƒ“ƒXƒgƒ‰ƒNƒ^
 ImageBuffer::ImageBuffer(int bufsize)
 {
     assert(bufsize > 0);
@@ -17,19 +17,19 @@ ImageBuffer::ImageBuffer(int bufsize)
     this->_buf = new Mat[bufsize];
 }
 
-// ãƒ‡ã‚¹ãƒˆãƒ©ã‚¯ã‚¿
+// ƒfƒXƒgƒ‰ƒNƒ^
 ImageBuffer::~ImageBuffer()
 {
-    delete [] this->_buf;
+    delete[] this->_buf;
 }
 
-// ã“ã‚Œã¾ã§ã®ç”»åƒã‚’ã‚¯ãƒªã‚¢ã—ã€busizeã‚’å¤‰æ›´ã™ã‚‹
-// bufsize=0ã§ã“ã‚Œã¾ã§ã¨åŒã˜bufsizeã¨ã™ã‚‹
+// ‚±‚ê‚Ü‚Å‚Ì‰æ‘œ‚ğƒNƒŠƒA‚µAbusize‚ğ•ÏX‚·‚é
+// bufsize=0‚Å‚±‚ê‚Ü‚Å‚Æ“¯‚¶bufsize‚Æ‚·‚é
 void ImageBuffer::Clear(int bufsize) {
-    
+
     if (bufsize != 0) {
         this->_bufsize = bufsize;
-        delete [] this->_buf;
+        delete[] this->_buf;
         this->_buf = new Mat[bufsize];
     }
     this->_count = 0;
@@ -38,36 +38,36 @@ void ImageBuffer::Clear(int bufsize) {
 
 
 //
-// ç”»åƒã‚’ä¸€ã¤è¿½åŠ ã—ã¦ã€ã“ã‚Œã¾ã§ã®å¹³å‡ç”»åƒã‚’å–å¾—ã™ã‚‹
-// æˆ»ã‚Šå€¤ã¯ä½•æšã®ç”»åƒã‚’ä½¿ç”¨ã—ãŸå¹³å‡ã‹
+// ‰æ‘œ‚ğˆê‚Â’Ç‰Á‚µ‚ÄA‚±‚ê‚Ü‚Å‚Ì•½‹Ï‰æ‘œ‚ğæ“¾‚·‚é
+// –ß‚è’l‚Í‰½–‡‚Ì‰æ‘œ‚ğg—p‚µ‚½•½‹Ï‚©
 void ImageBuffer::AddImage(Mat& src) {
 
-    // ç”»åƒè¿½åŠ 
+    // ‰æ‘œ’Ç‰Á
     _buf[_pos] = src.clone();
     if (_count != _bufsize) _count++;
 
-    // æ¬¡ã«è¿½åŠ ã™ã‚‹å ´æ‰€
+    // Ÿ‚É’Ç‰Á‚·‚éêŠ
     _pos++;
     _pos = _pos % _bufsize;
 
 }
 
-// å¹³å‡ç”»åƒã‚’å–å¾—
+// •½‹Ï‰æ‘œ‚ğæ“¾
 void ImageBuffer::AverageImage(Mat& ave)
 {
-    // ãƒ‡ãƒ¼ã‚¿ãªã—
+    // ƒf[ƒ^‚È‚µ
     if (_count == 0) return;
 
-    // ãƒ‡ãƒ¼ã‚¿ï¼‘å€‹ãªã‚‰ã‚³ãƒ”ãƒ¼ã—ã¦çµ‚äº†
+    // ƒf[ƒ^‚PŒÂ‚È‚çƒRƒs[‚µ‚ÄI—¹
     if (_count == 1) {
         ave = _buf[0].clone();
         return;
     }
 
     //
-    // ï¼’å€‹ä»¥ä¸Šãªã‚‰å¹³å‡ã‚’ä½œæˆ
+    // ‚QŒÂˆÈã‚È‚ç•½‹Ï‚ğì¬
     //
-    ave = Mat( _buf[0].size(), _buf[0].type());
+    ave = Mat(_buf[0].size(), _buf[0].type());
 
     int h = ave.rows, w = ave.cols;
     for (int y = 0; y < h; y++)
@@ -86,13 +86,13 @@ void ImageBuffer::AverageImage(Mat& ave)
     }
 }
 
-// æºœã¾ã£ãŸãƒãƒƒãƒ•ã‚¡ã®æ•°ã‚’å–å¾—
+// —­‚Ü‚Á‚½ƒoƒbƒtƒ@‚Ì”‚ğæ“¾
 int ImageBuffer::Count(void)
 {
     return _count;
 }
 
-// ãƒãƒƒãƒ•ã‚¡ã‹ä¸€æ¯ã‹å–å¾—
+// ƒoƒbƒtƒ@‚©ˆê”t‚©æ“¾
 bool ImageBuffer::IsFilled(void)
 {
     return (_count == _bufsize);
