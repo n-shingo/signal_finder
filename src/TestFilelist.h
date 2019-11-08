@@ -23,7 +23,8 @@ const char imgDir[][100] = {
     "/home/shingo/ssm/toBmp/bin/2018.1110.1321.bmp",     // ãtåı 4
     "/home/shingo/ssm/toBmp/bin/2018.1110.1321.bmp",     // ïÅí ÇÃêMçÜ
     */
-/*
+
+    /*
     "/home/shingo/ssm/toBmp/bin/2019.1021.1201.bmp",
     "/home/shingo/ssm/toBmp/bin/2019.1021.1201.bmp",
     "/home/shingo/ssm/toBmp/bin/2019.1021.1201.bmp",
@@ -44,7 +45,8 @@ const char imgDir[][100] = {
 
     "/home/shingo/ssm/toBmp/bin/2019.1021.1547.bmp",
     "/home/shingo/ssm/toBmp/bin/2019.1021.1547.bmp",
-*/
+    */
+
     "/home/shingo/ssm/toBmp/bin/2019.1102.1159.bmp",
     "/home/shingo/ssm/toBmp/bin/2019.1102.1205.bmp",
     "/home/shingo/ssm/toBmp/bin/2019.1102.1301.bmp",
@@ -55,6 +57,17 @@ const char imgDir[][100] = {
     "/home/shingo/ssm/toBmp/bin/2019.1102.1400.bmp",
     "/home/shingo/ssm/toBmp/bin/2019.1102.1457.bmp",
     "/home/shingo/ssm/toBmp/bin/2019.1102.1457.bmp",
+
+    "/home/shingo/ssm/toBmp/bin/2019.1108.1114.bmp",
+    "/home/shingo/ssm/toBmp/bin/2019.1108.1114.bmp",
+    "/home/shingo/ssm/toBmp/bin/2019.1108.1212.bmp",
+    "/home/shingo/ssm/toBmp/bin/2019.1108.1212.bmp",
+    "/home/shingo/ssm/toBmp/bin/2019.1108.1306.bmp",
+    "/home/shingo/ssm/toBmp/bin/2019.1108.1306.bmp",
+    "/home/shingo/ssm/toBmp/bin/2019.1108.1408.bmp",
+    "/home/shingo/ssm/toBmp/bin/2019.1108.1408.bmp",
+    "/home/shingo/ssm/toBmp/bin/2019.1108.1455.bmp",
+    "/home/shingo/ssm/toBmp/bin/2019.1108.1455.bmp",
 
 };
 
@@ -79,7 +92,8 @@ const int imgNum[][2] = {
     {0, 250}, // 231Ç≈ê¬
     {1758, 2245}, // 2164Ç≈ê¬
     */
-/*
+
+    /*
     { 0,500 },
     { 793, 1250 },
     { 1530, 2000 },
@@ -112,6 +126,17 @@ const int imgNum[][2] = {
     {1490,1890},
     {84,500},
     {1160,1276},
+
+    {200,600},
+    {1060,1360},
+    {60,160},
+    {1290, 1680},
+    {105,445},
+    {844, 1200},
+    {75,400},
+    {840, 1160},
+    {140,585},
+    {1734,2105},
 };
 #endif //__linux
 

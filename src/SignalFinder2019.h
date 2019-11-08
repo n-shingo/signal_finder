@@ -154,6 +154,10 @@ namespace sn
         void GetRedSignalArea(cv::Mat& src, cv::Mat& dst);
 
 
+        // M†‚ªÔ‚©‚çÂ‚É•Ï‚í‚Á‚½—¦
+        int RedToBlueRatio(cv::Mat& red, cv::Mat& blu, cv::Mat& dst);
+
+
     };
 }
 

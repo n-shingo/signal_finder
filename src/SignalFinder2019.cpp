@@ -1,7 +1,7 @@
 //-------------------------------------------------
 // SignalFinder2019.cpp
 // S. NAKAMURA
-// since: 2018-09-17
+// since: 2019-11-05
 //-------------------------------------------------
 
 #include "SignalFinder2019.h"
@@ -225,7 +225,7 @@ Result SignalFinder2019::WaitForBlueSignal(Mat& img, Mat& dst, bool drawResult)
     const int gaussKSize = 5;          // ガウスフィルタのカーネルサイズ
     const double gaussSigma = 3.0;     // ガウスフィルタの半径
     const double red_threshold = 0.925;  // 赤信号の相関係数閾値
-    const double blu_threshold = 0.925;  // 青信号の相関係数閾値
+    const double blu_threshold = 0.8;  // 青信号の相関係数閾値
 
                                          // 描画準備
     if (drawResult) {
@@ -386,13 +386,28 @@ Result SignalFinder2019::WaitForBlueSignal(Mat& img, Mat& dst, bool drawResult)
     if (drawResult && candImg.size() > 0 ) {
         Point pt = Point(bluRect.x + bluRect.width, bluRect.y + 20);
         if (blu_maxCC >= blu_threshold)
-            Labeling(dst, std::to_string(blu_maxCC), pt, 0.3, Scalar(255, 0, 0));
+            Labeling(dst, std::to_string(blu_maxCC), pt, 0.3, Scalar(200, 200, 0));
         else
             Labeling(dst, std::to_string(blu_maxCC), pt, 0.3);
     }
 
+    // 青信号っぽかった場合、赤信号から青信号への変化かチェック
+    cv::Mat diff;
+    int r2b=0;
+    if(blu_maxCC >= blu_threshold ){
+        r2b = RedToBlueRatio(_redSignal, bluImg, diff);
+
+        if(drawResult){
+            Point pt = Point(bluRect.x + bluRect.width, bluRect.y + 40);
+            if( r2b )
+                Labeling(dst, std::to_string(r2b), pt, 0.3, Scalar(255,0,0));
+            else
+                Labeling(dst, std::to_string(r2b), pt, 0.3);
+        }
+    }
+
     // 青信号でなかった場合
-    if (blu_maxCC < blu_threshold )
+    if (blu_maxCC < blu_threshold || r2b == 0 )
     {
         _redSignalLostCounter++;
 
@@ -496,6 +511,83 @@ void SignalFinder2019::GetRedSignalArea(cv::Mat& src, cv::Mat& dst)
         }
     }
 
+}
+
+// 赤信号から青信号に変更された率
+int SignalFinder2019::RedToBlueRatio(cv::Mat& red, cv::Mat& blu, cv::Mat& dst)
+{
+    assert(red.type() == CV_8UC3);
+    assert(blu.type() == CV_8UC3);
+    assert(red.cols == blu.cols);
+    assert(red.rows == blu.rows);
+
+    // いろいろな閾値
+    const int th_dif1=140, th_dif2=115;  // 差画像でこの間の値は見ない
+    const int th_up = 136, th_up_cnt = 10;
+    const int th_dn = 115, th_dn_cnt = 20;
+    
+    // グレイ画像化
+    int h = red.rows, w = red.cols;
+    cv::Mat red_gray, blu_gray;
+    cvtColor(red, red_gray, CV_BGR2GRAY);
+    cvtColor(blu, blu_gray, CV_BGR2GRAY);
+
+    // 差を計算
+    dst = Mat::zeros(red_gray.size(), CV_8U);
+    for( int y=0; y<h; y++ ){
+        uchar *r_pt = red_gray.data + red_gray.step[0]*y;
+        uchar *b_pt = blu_gray.data + blu_gray.step[0]*y;
+        uchar *d_pt = dst.data + dst.step[0]*y;
+
+        for( int x=0; x<dst.step[0]; x++ ){
+            d_pt[x] = (r_pt[x] - b_pt[x] + 255)/2;  // 差を計算
+        }
+    }
+
+    // 赤から青へ変化すれば dif 画像は上半分は明るい円が、下半分は暗い円ができるはず
+    // 閾値内の上下の平均と数を算出する
+    int half_h = h/2;
+
+    int cnt_up = 0, ave_up = 0;
+    int cnt_dn = 0, ave_dn = 0;
+    for( int y=0; y<h; y++ ){
+        uchar *pt = dst.data + dst.step[0]*y;
+
+        for( int x=0; x<dst.step[0]; x++ ){
+            if( pt[x] < th_dif2 || pt[x] > th_dif1 ){
+                // 上半分
+                if( y < half_h ){
+                    ave_up += pt[x];
+                    cnt_up++;
+                }
+                // 下半分
+                else{
+                    ave_dn += pt[x];
+                    cnt_dn++;
+                }
+            }
+            else
+                pt[x]=0;
+        }
+    }
+    ave_up /= cnt_up;
+    ave_dn /= cnt_dn;
+
+    // 結果チェック
+    //imshow( "difference", dst );
+    //std::cout << "UP: " << ave_up << ", " << cnt_up << std::endl;
+    //std::cout << "DN: " << ave_dn << ", " << cnt_dn << std::endl;
+
+    // 赤信号から青信号への変化か判定
+    if( ave_up >= th_up && cnt_up >= th_up_cnt 
+            && ave_dn <= th_dn && cnt_dn >= th_dn_cnt){
+        return 1;
+    }
+    else
+        return 0;
+
+
+    return 1.0;
 }
 
 

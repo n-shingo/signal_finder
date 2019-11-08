@@ -53,6 +53,7 @@ int main(void)
 		img = imread(fn);
 		dst = img(procArea);
 		img = dst.clone();
+
 		imshow("Original", img);
 
 		sf.AnalyzeImage(img, dst, true);
