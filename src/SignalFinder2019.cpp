@@ -225,9 +225,10 @@ Result SignalFinder2019::WaitForBlueSignal(Mat& img, Mat& dst, bool drawResult)
     const int gaussKSize = 5;          // ガウスフィルタのカーネルサイズ
     const double gaussSigma = 3.0;     // ガウスフィルタの半径
     const double red_threshold = 0.925;  // 赤信号の相関係数閾値
-    const double blu_threshold = 0.8;  // 青信号の相関係数閾値
+    const double blu_threshold = 0.75;  // 青信号の相関係数閾値
+    const double r2b_threshold = 0.25;  // 赤から青信号への変換度合い閾値
 
-                                         // 描画準備
+    // 描画準備
     if (drawResult) {
         // 描画用の原画像のクローン
         dst = img.clone();
@@ -392,17 +393,29 @@ Result SignalFinder2019::WaitForBlueSignal(Mat& img, Mat& dst, bool drawResult)
     }
 
     // 青信号っぽかった場合、赤信号から青信号への変化かチェック
-    cv::Mat diff;
-    int r2b=0;
+    double r2b_cc=0.0;
+    int r2b = 0;
     if(blu_maxCC >= blu_threshold ){
-        r2b = RedToBlueRatio(_redSignal, bluImg, diff);
+        r2b_cc = RedAndBlueDifCC(_redSignal, bluImg);
 
         if(drawResult){
             Point pt = Point(bluRect.x + bluRect.width, bluRect.y + 40);
-            if( r2b )
-                Labeling(dst, std::to_string(r2b), pt, 0.3, Scalar(255,0,0));
+            if( r2b_cc >= r2b_threshold )
+                Labeling(dst, std::to_string(r2b_cc), pt, 0.3, Scalar(255,0,0));
             else
-                Labeling(dst, std::to_string(r2b), pt, 0.3);
+                Labeling(dst, std::to_string(r2b_cc), pt, 0.3);
+        }
+
+        // 差画像の相関OKの場合
+        if(r2b_cc >= r2b_threshold ){
+            r2b = RedToBlueCheck(_redSignal, bluImg);
+            if(drawResult){
+                Point pt = Point(bluRect.x + bluRect.width, bluRect.y + 60);
+                if( r2b == 1 )
+                    Labeling(dst, std::to_string(r2b), pt, 0.3, Scalar(255,0,0));
+                else
+                    Labeling(dst, std::to_string(r2b), pt, 0.3);
+            }
         }
     }
 
@@ -513,8 +526,39 @@ void SignalFinder2019::GetRedSignalArea(cv::Mat& src, cv::Mat& dst)
 
 }
 
-// 赤信号から青信号に変更された率
-int SignalFinder2019::RedToBlueRatio(cv::Mat& red, cv::Mat& blu, cv::Mat& dst)
+
+// 赤信号から青信号に変更された差分画像の相関係数を計算
+double SignalFinder2019::RedAndBlueDifCC(cv::Mat& red, cv::Mat& blu)
+{
+    assert(red.type() == CV_8UC3);
+    assert(blu.type() == CV_8UC3);
+    assert(red.cols == blu.cols);
+    assert(red.rows == blu.rows);
+
+    // グレイ画像化
+    int h = red.rows, w = red.cols;
+    cv::Mat red_gray, blu_gray;
+    cvtColor(red, red_gray, CV_BGR2GRAY);
+    cvtColor(blu, blu_gray, CV_BGR2GRAY);
+
+    // 差を計算
+    Mat dif = Mat::zeros(red_gray.size(), CV_8U);
+    for( int y=0; y<h; y++ ){
+        uchar *r_pt = red_gray.data + red_gray.step[0]*y;
+        uchar *b_pt = blu_gray.data + blu_gray.step[0]*y;
+        uchar *d_pt = dif.data + dif.step[0]*y;
+
+        for( int x=0; x<dif.step[0]; x++ ){
+            d_pt[x] = (r_pt[x] - b_pt[x] + 255)/2;  // 差を計算
+        }
+    }
+
+    // 差をテンプレートと比較
+    return CompareImages( dif, R2B_DIFF_IMG );
+
+}
+
+int SignalFinder2019::RedToBlueCheck(cv::Mat& red, cv::Mat& blu)
 {
     assert(red.type() == CV_8UC3);
     assert(blu.type() == CV_8UC3);
@@ -522,7 +566,7 @@ int SignalFinder2019::RedToBlueRatio(cv::Mat& red, cv::Mat& blu, cv::Mat& dst)
     assert(red.rows == blu.rows);
 
     // いろいろな閾値
-    const int th_dif1=140, th_dif2=115;  // 差画像でこの間の値は見ない
+    const int th_dif1=132, th_dif2=115;  // 差画像でこの間の値は見ない
     const int th_up = 136, th_up_cnt = 10;
     const int th_dn = 115, th_dn_cnt = 20;
     
@@ -533,13 +577,13 @@ int SignalFinder2019::RedToBlueRatio(cv::Mat& red, cv::Mat& blu, cv::Mat& dst)
     cvtColor(blu, blu_gray, CV_BGR2GRAY);
 
     // 差を計算
-    dst = Mat::zeros(red_gray.size(), CV_8U);
+    Mat dif = Mat::zeros(red_gray.size(), CV_8U);
     for( int y=0; y<h; y++ ){
         uchar *r_pt = red_gray.data + red_gray.step[0]*y;
         uchar *b_pt = blu_gray.data + blu_gray.step[0]*y;
-        uchar *d_pt = dst.data + dst.step[0]*y;
+        uchar *d_pt = dif.data + dif.step[0]*y;
 
-        for( int x=0; x<dst.step[0]; x++ ){
+        for( int x=0; x<dif.step[0]; x++ ){
             d_pt[x] = (r_pt[x] - b_pt[x] + 255)/2;  // 差を計算
         }
     }
@@ -551,9 +595,9 @@ int SignalFinder2019::RedToBlueRatio(cv::Mat& red, cv::Mat& blu, cv::Mat& dst)
     int cnt_up = 0, ave_up = 0;
     int cnt_dn = 0, ave_dn = 0;
     for( int y=0; y<h; y++ ){
-        uchar *pt = dst.data + dst.step[0]*y;
+        uchar *pt = dif.data + dif.step[0]*y;
 
-        for( int x=0; x<dst.step[0]; x++ ){
+        for( int x=0; x<dif.step[0]; x++ ){
             if( pt[x] < th_dif2 || pt[x] > th_dif1 ){
                 // 上半分
                 if( y < half_h ){
@@ -570,6 +614,11 @@ int SignalFinder2019::RedToBlueRatio(cv::Mat& red, cv::Mat& blu, cv::Mat& dst)
                 pt[x]=0;
         }
     }
+
+    // 有効な画素がなければFalseで終了
+    if( cnt_up == 0 || cnt_dn == 0 )
+        return 0;
+
     ave_up /= cnt_up;
     ave_dn /= cnt_dn;
 
@@ -586,8 +635,6 @@ int SignalFinder2019::RedToBlueRatio(cv::Mat& red, cv::Mat& blu, cv::Mat& dst)
     else
         return 0;
 
-
-    return 1.0;
 }
 
 

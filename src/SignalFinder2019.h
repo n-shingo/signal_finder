@@ -3,6 +3,7 @@
 // S. NAKAMURA
 // since: 2019-11-06
 //-------------------------------------------------
+#define SF_VERSION ("SignalFinder2019 VER.2019.11.08-03")
 
 #ifndef __SIGNALFINDER2019_H__
 #define __SIGNALFINDER2019_H__
@@ -12,7 +13,7 @@
 #include "MyEnums.h"
 
 #define RED_SIGNAL_FILE_CNT  8  // 赤信号のテンプレート数
-#define BLUE_SIGNAL_FILE_CNT 8  // 青信号のテンプレート数
+#define BLUE_SIGNAL_FILE_CNT 9  // 青信号のテンプレート数
 
 namespace sn
 {
@@ -49,7 +50,10 @@ namespace sn
             "../res2019/14_02_blu.bmp",
             "../res2019/15_01_blu.bmp",
             "../res2019/15_02_blu.bmp",
+            "../res2019/16_01_blu.bmp",
         };
+
+        const char R2B_DIFF_FILE[256] = "../res2019/r2b_diff.bmp";
 #endif
 #ifdef _WIN64
         const char RED_SIGNAL_FILE[RED_SIGNAL_FILE_CNT][256] = {
@@ -75,6 +79,7 @@ namespace sn
 #endif
         Mat RED_SIGNAL_BASE_IMG[RED_SIGNAL_FILE_CNT];
         Mat BLUE_SIGNAL_BASE_IMG[BLUE_SIGNAL_FILE_CNT];
+        Mat R2B_DIFF_IMG;
         const int RED_AREA_BUF_SIZE = 10; // 赤信号を見つけるための画像バッファサイズ
         const int IMAGE_BUF_SIZE = 10; // 取っておく過去の画像のバッファサイズ
         const int RED_SIGNAL_BUF_SIZE = 3;  // 赤信号であるか確認するためのデータのバッファ数
@@ -86,6 +91,7 @@ namespace sn
         // コンストラクタ
         SignalFinder2019()
         {
+            std::cout << SF_VERSION << std::endl;
             this->SIGNAL_LOCATE_FROM_RED = Rect(-8, -8, 18, 32);
             _redAreaBuf.Clear(RED_AREA_BUF_SIZE);
             _redSigImgBuf.Clear(RED_SIGNAL_BUF_SIZE);
@@ -98,6 +104,9 @@ namespace sn
             // 青信号テンプレートファイル
             for( int i=0; i<BLUE_SIGNAL_FILE_CNT; i++)
                 BLUE_SIGNAL_BASE_IMG[i] = imread(BLUE_SIGNAL_FILE[i]);
+
+            // 赤から青信号の差分テンプレート画像
+            R2B_DIFF_IMG = imread(R2B_DIFF_FILE);
         }
 
         // デストラクタ
@@ -154,9 +163,11 @@ namespace sn
         void GetRedSignalArea(cv::Mat& src, cv::Mat& dst);
 
 
-        // 信号が赤から青に変わった率
-        int RedToBlueRatio(cv::Mat& red, cv::Mat& blu, cv::Mat& dst);
+        // 赤から青に変わった差分画像の相関係数
+        double RedAndBlueDifCC(cv::Mat& red, cv::Mat& blu);
 
+        // 赤から青に変わった時の明度をチェックする（上は暗く、下は明るくなった）
+        int RedToBlueCheck(cv::Mat& red, cv::Mat& blu);
 
     };
 }
